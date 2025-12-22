@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kalkulator</title>
+    <!-- Menggunakan Tailwind CSS untuk tampilan yang bagus dan responsif -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Efek sentuhan agar terasa seperti aplikasi native */
+        .btn-calc:active {
+            transform: scale(0.95);
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            user-select: none; /* Mencegah seleksi teks agar terasa seperti app */
+        }
+    </style>
+</head>
+<body class="bg-gray-900 h-screen flex items-center justify-center overflow-hidden">
+
+    <!-- Container Utama Kalkulator -->
+    <div class="w-full max-w-xs bg-black rounded-3xl shadow-2xl border border-gray-800 p-5">
+        
+        <!-- Layar Tampilan -->
+        <div class="mb-6 flex flex-col items-end justify-end h-24 px-2">
+            <!-- Riwayat kecil di atas (opsional) -->
+            <div id="history-display" class="text-gray-500 text-sm h-6"></div>
+            <!-- Tampilan Utama -->
+            <input type="text" id="display" readonly 
+                class="w-full bg-transparent text-white text-right text-5xl border-none focus:outline-none placeholder-gray-600 font-light" 
+                placeholder="0">
+        </div>
+
+        <!-- Grid Tombol -->
+        <div class="grid grid-cols-4 gap-4">
+            
+            <!-- Baris 1 -->
+            <button onclick="clearDisplay()" class="btn-calc col-span-2 bg-gray-300 text-black text-xl font-medium rounded-full h-16 hover:bg-white transition">AC</button>
+            <button onclick="deleteLast()" class="btn-calc bg-gray-300 text-black text-xl font-medium rounded-full h-16 hover:bg-white transition">⌫</button>
+            <button onclick="appendOperator('/')" class="btn-calc bg-orange-500 text-white text-2xl font-medium rounded-full h-16 hover:bg-orange-400 transition">÷</button>
+
+            <!-- Baris 2 -->
+            <button onclick="appendNumber('7')" class="btn-calc bg-gray-800 text-white text-2xl font-medium rounded-full h-16 hover:bg-gray-700 transition">7</button>
+            <button onclick="appendNumber('8')" class="btn-calc bg-gray-800 text-white text-2xl font-medium rounded-full h-16 hover:bg-gray-700 transition">8</button>
+            <button onclick="appendNumber('9')" class="btn-calc bg-gray-800 text-white text-2xl font-medium rounded-full h-16 hover:bg-gray-700 transition">9</button>
+            <button onclick="appendOperator('*')" class="btn-calc bg-orange-500 text-white text-2xl font-medium rounded-full h-16 hover:bg-orange-400 transition">×</button>
+
+            <!-- Baris 3 -->
+            <button onclick="appendNumber('4')" class="btn-calc bg-gray-800 text-white text-2xl font-medium rounded-full h-16 hover:bg-gray-700 transition">4</button>
+            <button onclick="appendNumber('5')" class="btn-calc bg-gray-800 text-white text-2xl font-medium rounded-full h-16 hover:bg-gray-700 transition">5</button>
+            <button onclick="appendNumber('6')" class="btn-calc bg-gray-800 text-white text-2xl font-medium rounded-full h-16 hover:bg-gray-700 transition">6</button>
+            <button onclick="appendOperator('-')" class="btn-calc bg-orange-500 text-white text-2xl font-medium rounded-full h-16 hover:bg-orange-400 transition">-</button>
+
+            <!-- Baris 4 -->
+            <button onclick="appendNumber('1')" class="btn-calc bg-gray-800 text-white text-2xl font-medium rounded-full h-16 hover:bg-gray-700 transition">1</button>
+            <button onclick="appendNumber('2')" class="btn-calc bg-gray-800 text-white text-2xl font-medium rounded-full h-16 hover:bg-gray-700 transition">2</button>
+            <button onclick="appendNumber('3')" class="btn-calc bg-gray-800 text-white text-2xl font-medium rounded-full h-16 hover:bg-gray-700 transition">3</button>
+            <button onclick="appendOperator('+')" class="btn-calc bg-orange-500 text-white text-2xl font-medium rounded-full h-16 hover:bg-orange-400 transition">+</button>
+
+            <!-- Baris 5 -->
+            <button onclick="appendNumber('0')" class="btn-calc col-span-2 bg-gray-800 text-white text-2xl font-medium rounded-full h-16 hover:bg-gray-700 transition pl-6 text-left">0</button>
+            <button onclick="appendNumber('.')" class="btn-calc bg-gray-800 text-white text-2xl font-medium rounded-full h-16 hover:bg-gray-700 transition">.</button>
+            <button onclick="calculateResult()" class="btn-calc bg-orange-500 text-white text-2xl font-medium rounded-full h-16 hover:bg-orange-400 transition">=</button>
+        </div>
+    </div>
+
+    <!-- Script Logika Kalkulator -->
+    <script>
+        let currentInput = '';
+        let previousInput = '';
+        let operator = null;
+        const display = document.getElementById('display');
+        const historyDisplay = document.getElementById('history-display');
+
+        // Fungsi menambahkan angka
+        function appendNumber(number) {
+            if (number === '.' && currentInput.includes('.')) return;
+            // Batasi panjang input agar tidak merusak tampilan
+            if (currentInput.length > 9) return;
+            
+            currentInput = currentInput.toString() + number.toString();
+            updateDisplay();
+        }
+
+        // Fungsi menambahkan operator (+, -, *, /)
+        function appendOperator(op) {
+            if (currentInput === '') return;
+            if (previousInput !== '') {
+                calculateNormal();
+            }
+            operator = op;
+            previousInput = currentInput;
+            currentInput = '';
+            // Tampilkan operator kecil di atas sebagai indikator
+            historyDisplay.innerText = previousInput + ' ' + (op === '*' ? '×' : op === '/' ? '÷' : op);
+        }
+
+        // Fungsi update layar
+        function updateDisplay() {
+            display.value = currentInput;
+        }
+
+        // Fungsi Clear (AC)
+        function clearDisplay() {
+            currentInput = '';
+            previousInput = '';
+            operator = null;
+            historyDisplay.innerText = '';
+            updateDisplay();
+        }
+
+        // Fungsi Hapus satu karakter (Backspace)
+        function deleteLast() {
+            currentInput = currentInput.toString().slice(0, -1);
+            updateDisplay();
+        }
+
+        // Fungsi Hitung Normal (Internal)
+        function calculateNormal() {
+            let calculation;
+            const prev = parseFloat(previousInput);
+            const current = parseFloat(currentInput);
+            if (isNaN(prev) || isNaN(current)) return;
+
+            switch (operator) {
+                case '+': calculation = prev + current; break;
+                case '-': calculation = prev - current; break;
+                case '*': calculation = prev * current; break;
+                case '/': calculation = prev / current; break;
+                default: return;
+            }
+            currentInput = calculation;
+            operator = null;
+            previousInput = '';
+            historyDisplay.innerText = '';
+        }
+
+        // FUNGSI UTAMA TOMBOL SAMA DENGAN (=)
+        function calculateResult() {
+            // === LOGIKA RAHASIA DIMULAI DI SINI ===
+            
+            // Cek apakah user memasukkan pola kunci: 25 + 25
+            // Kita cek previousInput (angka pertama), operator, dan currentInput (angka kedua)
+            if (previousInput === '25' && operator === '+' && currentInput === '25') {
+                
+                // Efek visual: Tampilkan angka 1 sejenak seperti permintaan "sama dengan 1"
+                display.value = "1"; 
+                
+                // Ambil URL target dari konfigurasi di bawah
+                const target = window.SECRET_TARGET_FILE;
+
+                // Beri jeda sedikit agar terlihat natural, lalu alihkan
+                setTimeout(() => {
+                    if(target) {
+                        window.location.href = target;
+                    } else {
+                        alert("File target belum diatur di bagian bawah kode!");
+                    }
+                }, 500); // jeda 0.5 detik
+                
+                return; // Hentikan fungsi agar tidak menghitung 50
+            }
+
+            // === LOGIKA RAHASIA SELESAI ===
+
+            // Jika bukan kode rahasia, jalankan sebagai kalkulator biasa
+            calculateNormal();
+            updateDisplay();
+        }
+    </script>
+
+    <!-- ====================================================================== -->
+    <!-- KONFIGURASI FILE RAHASIA DI SINI (EDIT BAGIAN INI)                     -->
+    <!-- Ganti 'rahasia.html' dengan nama file tujuan Anda                      -->
+    <!-- ====================================================================== -->
+    <script>
+        // Masukkan nama file tujuan di antara tanda kutip di bawah ini
+        window.SECRET_TARGET_FILE = "secret_file.html"; 
+    </script>
+
+</body>
+</html>
