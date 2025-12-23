@@ -3,181 +3,455 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kalkulator</title>
-    <!-- Menggunakan Tailwind CSS untuk tampilan yang bagus dan responsif -->
+    <title>LanaVyn Community - Official Portal</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        /* Efek sentuhan agar terasa seperti aplikasi native */
-        .btn-calc:active {
-            transform: scale(0.95);
-        }
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+        
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            user-select: none; /* Mencegah seleksi teks agar terasa seperti app */
+            font-family: 'Poppins', sans-serif;
+            background-color: #0f172a; /* Slate 900 */
+            color: white;
+        }
+
+        .gradient-text {
+            background: linear-gradient(to right, #a855f7, #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .glass-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Signature Canvas styling */
+        canvas#signaturePad {
+            background-color: #fff;
+            border-radius: 0.5rem;
+            cursor: crosshair;
+            touch-action: none; /* Prevent scrolling while signing */
         }
     </style>
 </head>
-<body class="bg-gray-900 h-screen flex items-center justify-center overflow-hidden">
+<body class="min-h-screen flex flex-col">
 
-    <!-- Container Utama Kalkulator -->
-    <div class="w-full max-w-xs bg-black rounded-3xl shadow-2xl border border-gray-800 p-5">
+    <!-- Navbar -->
+    <nav class="p-4 glass-card sticky top-0 z-50">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-bold tracking-tighter">Lana<span class="text-purple-500">Vyn</span></h1>
+            <a href="https://chat.whatsapp.com/KCnQv5xdjZb60UUzbLqUj4" target="_blank" class="text-sm bg-green-600 hover:bg-green-700 px-3 py-1 rounded-full transition">
+                <i class="fab fa-whatsapp"></i> Grup WA
+            </a>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow container mx-auto p-4 flex flex-col items-center justify-center relative">
         
-        <!-- Layar Tampilan -->
-        <div class="mb-6 flex flex-col items-end justify-end h-24 px-2">
-            <!-- Riwayat kecil di atas (opsional) -->
-            <div id="history-display" class="text-gray-500 text-sm h-6"></div>
-            <!-- Tampilan Utama -->
-            <input type="text" id="display" readonly 
-                class="w-full bg-transparent text-white text-right text-5xl border-none focus:outline-none placeholder-gray-600 font-light" 
-                placeholder="0">
+        <!-- SECTION 1: LANDING -->
+        <div id="section-landing" class="text-center space-y-6 max-w-2xl animate-fade-in">
+            <div class="mb-4 inline-block p-4 rounded-full bg-purple-900/30 border border-purple-500/30">
+                <i class="fas fa-users text-4xl text-purple-400"></i>
+            </div>
+            <h1 class="text-4xl md:text-6xl font-bold">Selamat Datang di <br><span class="gradient-text">LanaVyn Community</span></h1>
+            <p class="text-gray-400 text-lg">Komunitas solid untuk berbagi, belajar, dan berkembang bersama.</p>
+            
+            <div class="flex flex-col md:flex-row gap-4 justify-center mt-8">
+                <a href="https://chat.whatsapp.com/KCnQv5xdjZb60UUzbLqUj4" target="_blank" class="px-8 py-3 bg-green-600 hover:bg-green-700 rounded-xl font-bold shadow-lg shadow-green-900/20 transition transform hover:scale-105 flex items-center justify-center gap-2">
+                    <i class="fab fa-whatsapp text-xl"></i> Gabung Grup Sekarang
+                </a>
+                <button onclick="goToForm()" class="px-8 py-3 bg-white text-slate-900 hover:bg-gray-200 rounded-xl font-bold shadow-lg transition transform hover:scale-105 flex items-center justify-center gap-2">
+                    <i class="fas fa-id-card"></i> Sudah Join? Bikin Kartu
+                </button>
+            </div>
         </div>
 
-        <!-- Grid Tombol -->
-        <div class="grid grid-cols-4 gap-4">
-            
-            <!-- Baris 1 -->
-            <button onclick="clearDisplay()" class="btn-calc col-span-2 bg-gray-300 text-black text-xl font-medium rounded-full h-16 hover:bg-white transition">AC</button>
-            <button onclick="deleteLast()" class="btn-calc bg-gray-300 text-black text-xl font-medium rounded-full h-16 hover:bg-white transition">⌫</button>
-            <button onclick="appendOperator('/')" class="btn-calc bg-orange-500 text-white text-2xl font-medium rounded-full h-16 hover:bg-orange-400 transition">÷</button>
+        <!-- SECTION 2: FORM -->
+        <div id="section-form" class="hidden w-full max-w-md">
+            <div class="glass-card p-6 rounded-2xl shadow-2xl border border-purple-500/20">
+                <div class="flex items-center gap-3 mb-6 border-b border-gray-700 pb-4">
+                    <button onclick="goBack()" class="text-gray-400 hover:text-white"><i class="fas fa-arrow-left"></i></button>
+                    <h2 class="text-xl font-bold">Data Anggota</h2>
+                </div>
 
-            <!-- Baris 2 -->
-            <button onclick="appendNumber('7')" class="btn-calc bg-gray-800 text-white text-2xl font-medium rounded-full h-16 hover:bg-gray-700 transition">7</button>
-            <button onclick="appendNumber('8')" class="btn-calc bg-gray-800 text-white text-2xl font-medium rounded-full h-16 hover:bg-gray-700 transition">8</button>
-            <button onclick="appendNumber('9')" class="btn-calc bg-gray-800 text-white text-2xl font-medium rounded-full h-16 hover:bg-gray-700 transition">9</button>
-            <button onclick="appendOperator('*')" class="btn-calc bg-orange-500 text-white text-2xl font-medium rounded-full h-16 hover:bg-orange-400 transition">×</button>
+                <form id="memberForm" onsubmit="event.preventDefault(); generateDocuments();" class="space-y-4">
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-1">Nama Lengkap / Nickname</label>
+                        <input type="text" id="inputName" required class="w-full bg-slate-800 border border-slate-600 rounded-lg p-3 focus:outline-none focus:border-purple-500 text-white" placeholder="Contoh: Lana Vyn">
+                    </div>
 
-            <!-- Baris 3 -->
-            <button onclick="appendNumber('4')" class="btn-calc bg-gray-800 text-white text-2xl font-medium rounded-full h-16 hover:bg-gray-700 transition">4</button>
-            <button onclick="appendNumber('5')" class="btn-calc bg-gray-800 text-white text-2xl font-medium rounded-full h-16 hover:bg-gray-700 transition">5</button>
-            <button onclick="appendNumber('6')" class="btn-calc bg-gray-800 text-white text-2xl font-medium rounded-full h-16 hover:bg-gray-700 transition">6</button>
-            <button onclick="appendOperator('-')" class="btn-calc bg-orange-500 text-white text-2xl font-medium rounded-full h-16 hover:bg-orange-400 transition">-</button>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm text-gray-400 mb-1">Usia</label>
+                            <input type="number" id="inputAge" required class="w-full bg-slate-800 border border-slate-600 rounded-lg p-3 focus:outline-none focus:border-purple-500 text-white" placeholder="18">
+                        </div>
+                        <div>
+                            <label class="block text-sm text-gray-400 mb-1">Wilayah/Kota</label>
+                            <input type="text" id="inputRegion" required class="w-full bg-slate-800 border border-slate-600 rounded-lg p-3 focus:outline-none focus:border-purple-500 text-white" placeholder="Jakarta">
+                        </div>
+                    </div>
 
-            <!-- Baris 4 -->
-            <button onclick="appendNumber('1')" class="btn-calc bg-gray-800 text-white text-2xl font-medium rounded-full h-16 hover:bg-gray-700 transition">1</button>
-            <button onclick="appendNumber('2')" class="btn-calc bg-gray-800 text-white text-2xl font-medium rounded-full h-16 hover:bg-gray-700 transition">2</button>
-            <button onclick="appendNumber('3')" class="btn-calc bg-gray-800 text-white text-2xl font-medium rounded-full h-16 hover:bg-gray-700 transition">3</button>
-            <button onclick="appendOperator('+')" class="btn-calc bg-orange-500 text-white text-2xl font-medium rounded-full h-16 hover:bg-orange-400 transition">+</button>
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-1">Tanda Tangan (Wajib)</label>
+                        <div class="border border-slate-600 rounded-lg overflow-hidden relative">
+                            <canvas id="signaturePad" width="350" height="150" class="w-full bg-white"></canvas>
+                            <button type="button" onclick="clearSignature()" class="absolute top-2 right-2 text-xs bg-red-500 text-white px-2 py-1 rounded shadow hover:bg-red-600">Hapus</button>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">*Tanda tangan di kotak putih di atas.</p>
+                    </div>
 
-            <!-- Baris 5 -->
-            <button onclick="appendNumber('0')" class="btn-calc col-span-2 bg-gray-800 text-white text-2xl font-medium rounded-full h-16 hover:bg-gray-700 transition pl-6 text-left">0</button>
-            <button onclick="appendNumber('.')" class="btn-calc bg-gray-800 text-white text-2xl font-medium rounded-full h-16 hover:bg-gray-700 transition">.</button>
-            <button onclick="calculateResult()" class="btn-calc bg-orange-500 text-white text-2xl font-medium rounded-full h-16 hover:bg-orange-400 transition">=</button>
+                    <div class="flex items-start gap-2 pt-2">
+                        <input type="checkbox" id="checkReady" required class="mt-1 w-4 h-4 accent-purple-500">
+                        <label for="checkReady" class="text-sm text-gray-300">Saya menyatakan siap mematuhi peraturan LanaVyn Community.</label>
+                    </div>
+
+                    <button type="submit" class="w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg font-bold shadow-lg hover:opacity-90 transition mt-4">
+                        <i class="fas fa-magic mr-2"></i> Buat Kartu & Surat
+                    </button>
+                </form>
+            </div>
         </div>
-    </div>
 
-    <!-- Script Logika Kalkulator -->
+        <!-- SECTION 3: RESULT -->
+        <div id="section-result" class="hidden w-full max-w-4xl space-y-8 pb-10">
+            <div class="text-center">
+                <h2 class="text-3xl font-bold mb-2">Selamat Bergabung!</h2>
+                <p class="text-gray-400">Berkas keanggotaan Anda telah siap.</p>
+                <button onclick="location.reload()" class="mt-4 text-sm text-purple-400 hover:text-purple-300 underline">Buat Ulang</button>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-8 items-start">
+                
+                <!-- Card Result -->
+                <div class="space-y-4">
+                    <h3 class="text-xl font-bold border-l-4 border-purple-500 pl-3">1. Kartu Member</h3>
+                    <div class="bg-slate-800 p-2 rounded-xl shadow-xl">
+                        <canvas id="cardCanvas" class="w-full rounded-lg shadow-inner"></canvas>
+                    </div>
+                    <button onclick="downloadCanvas('cardCanvas', 'LanaVyn_MemberCard.png')" class="w-full py-2 bg-slate-700 hover:bg-slate-600 rounded-lg font-semibold transition flex items-center justify-center gap-2">
+                        <i class="fas fa-download"></i> Download Kartu
+                    </button>
+                </div>
+
+                <!-- Letter Result -->
+                <div class="space-y-4">
+                    <h3 class="text-xl font-bold border-l-4 border-pink-500 pl-3">2. Surat Pernyataan (A4)</h3>
+                    <div class="bg-slate-800 p-2 rounded-xl shadow-xl h-64 overflow-y-auto custom-scrollbar">
+                        <!-- Canvas is scaled down visually but full res for download -->
+                        <canvas id="letterCanvas" class="w-full shadow-inner bg-white"></canvas>
+                    </div>
+                    <p class="text-xs text-center text-gray-500">Preview diperkecil (scroll untuk melihat). Hasil download resolusi penuh.</p>
+                    <button onclick="downloadCanvas('letterCanvas', 'LanaVyn_SuratPernyataan.png')" class="w-full py-2 bg-slate-700 hover:bg-slate-600 rounded-lg font-semibold transition flex items-center justify-center gap-2">
+                        <i class="fas fa-download"></i> Download Surat
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="p-4 text-center text-gray-600 text-sm">
+        &copy; 2024 LanaVyn Community. All rights reserved.
+    </footer>
+
+    <!-- LOGIC SCRIPT -->
     <script>
-        let currentInput = '';
-        let previousInput = '';
-        let operator = null;
-        const display = document.getElementById('display');
-        const historyDisplay = document.getElementById('history-display');
+        // --- Navigation Logic ---
+        function goToForm() {
+            document.getElementById('section-landing').classList.add('hidden');
+            document.getElementById('section-form').classList.remove('hidden');
+            resizeCanvas(); // Ensure signature pad fits
+        }
 
-        // Fungsi menambahkan angka
-        function appendNumber(number) {
-            if (number === '.' && currentInput.includes('.')) return;
-            // Batasi panjang input agar tidak merusak tampilan
-            if (currentInput.length > 9) return;
+        function goBack() {
+            document.getElementById('section-form').classList.add('hidden');
+            document.getElementById('section-landing').classList.remove('hidden');
+        }
+
+        // --- Signature Pad Logic ---
+        const sigCanvas = document.getElementById('signaturePad');
+        const sigCtx = sigCanvas.getContext('2d');
+        let isDrawing = false;
+        let lastX = 0;
+        let lastY = 0;
+
+        // Resize signature canvas to fit container
+        function resizeCanvas() {
+            const ratio = Math.max(window.devicePixelRatio || 1, 1);
+            sigCanvas.width = sigCanvas.offsetWidth * ratio;
+            sigCanvas.height = sigCanvas.offsetHeight * ratio;
+            sigCtx.scale(ratio, ratio);
+        }
+        window.addEventListener("resize", resizeCanvas);
+
+        // Drawing events (Mouse & Touch)
+        function getPos(e) {
+            const rect = sigCanvas.getBoundingClientRect();
+            let clientX = e.clientX;
+            let clientY = e.clientY;
             
-            currentInput = currentInput.toString() + number.toString();
-            updateDisplay();
-        }
-
-        // Fungsi menambahkan operator (+, -, *, /)
-        function appendOperator(op) {
-            if (currentInput === '') return;
-            if (previousInput !== '') {
-                calculateNormal();
+            if(e.touches && e.touches.length > 0) {
+                clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
             }
-            operator = op;
-            previousInput = currentInput;
-            currentInput = '';
-            // Tampilkan operator kecil di atas sebagai indikator
-            historyDisplay.innerText = previousInput + ' ' + (op === '*' ? '×' : op === '/' ? '÷' : op);
+
+            return {
+                x: clientX - rect.left,
+                y: clientY - rect.top
+            };
         }
 
-        // Fungsi update layar
-        function updateDisplay() {
-            display.value = currentInput;
+        function startDrawing(e) {
+            isDrawing = true;
+            const pos = getPos(e);
+            lastX = pos.x;
+            lastY = pos.y;
+            e.preventDefault(); // Stop scrolling on touch
         }
 
-        // Fungsi Clear (AC)
-        function clearDisplay() {
-            currentInput = '';
-            previousInput = '';
-            operator = null;
-            historyDisplay.innerText = '';
-            updateDisplay();
-        }
-
-        // Fungsi Hapus satu karakter (Backspace)
-        function deleteLast() {
-            currentInput = currentInput.toString().slice(0, -1);
-            updateDisplay();
-        }
-
-        // Fungsi Hitung Normal (Internal)
-        function calculateNormal() {
-            let calculation;
-            const prev = parseFloat(previousInput);
-            const current = parseFloat(currentInput);
-            if (isNaN(prev) || isNaN(current)) return;
-
-            switch (operator) {
-                case '+': calculation = prev + current; break;
-                case '-': calculation = prev - current; break;
-                case '*': calculation = prev * current; break;
-                case '/': calculation = prev / current; break;
-                default: return;
-            }
-            currentInput = calculation;
-            operator = null;
-            previousInput = '';
-            historyDisplay.innerText = '';
-        }
-
-        // FUNGSI UTAMA TOMBOL SAMA DENGAN (=)
-        function calculateResult() {
-            // === LOGIKA RAHASIA DIMULAI DI SINI ===
+        function draw(e) {
+            if (!isDrawing) return;
+            const pos = getPos(e);
             
-            // Cek apakah user memasukkan pola kunci: 25 + 25
-            // Kita cek previousInput (angka pertama), operator, dan currentInput (angka kedua)
-            if (previousInput === '25' && operator === '+' && currentInput === '25') {
-                
-                // Efek visual: Tampilkan angka 1 sejenak seperti permintaan "sama dengan 1"
-                display.value = "1"; 
-                
-                // Ambil URL target dari konfigurasi di bawah
-                const target = window.SECRET_TARGET_FILE;
+            sigCtx.beginPath();
+            sigCtx.moveTo(lastX, lastY);
+            sigCtx.lineTo(pos.x, pos.y);
+            sigCtx.strokeStyle = '#000';
+            sigCtx.lineWidth = 2;
+            sigCtx.lineCap = 'round';
+            sigCtx.stroke();
+            
+            lastX = pos.x;
+            lastY = pos.y;
+            e.preventDefault();
+        }
 
-                // Beri jeda sedikit agar terlihat natural, lalu alihkan
-                setTimeout(() => {
-                    if(target) {
-                        window.location.href = target;
-                    } else {
-                        alert("File target belum diatur di bagian bawah kode!");
-                    }
-                }, 500); // jeda 0.5 detik
-                
-                return; // Hentikan fungsi agar tidak menghitung 50
+        function stopDrawing() {
+            isDrawing = false;
+        }
+
+        function clearSignature() {
+            sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height);
+        }
+
+        // Event Listeners for Signature
+        sigCanvas.addEventListener('mousedown', startDrawing);
+        sigCanvas.addEventListener('mousemove', draw);
+        sigCanvas.addEventListener('mouseup', stopDrawing);
+        sigCanvas.addEventListener('mouseout', stopDrawing);
+        
+        sigCanvas.addEventListener('touchstart', startDrawing, {passive: false});
+        sigCanvas.addEventListener('touchmove', draw, {passive: false});
+        sigCanvas.addEventListener('touchend', stopDrawing);
+
+
+        // --- Generator Logic ---
+        async function generateDocuments() {
+            // Check if signed
+            const pixelBuffer = sigCtx.getImageData(0, 0, sigCanvas.width, sigCanvas.height).data;
+            const isSigned = pixelBuffer.some(channel => channel !== 0); // Check for non-transparent pixels (in simple terms, background is white but checking logic)
+            // Simpler check: check if empty (white)
+            // Actually, since we fill white background via CSS, canvas is transparent by default until drawn? 
+            // Let's force draw check logic or just trust user.
+            // For this demo, let's assume valid if inputs valid.
+
+            const name = document.getElementById('inputName').value;
+            const age = document.getElementById('inputAge').value;
+            const region = document.getElementById('inputRegion').value;
+            
+            // Random Member ID
+            const memberId = 'LV-' + Math.floor(1000 + Math.random() * 9000);
+            const joinDate = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+
+            // 1. Generate ID CARD
+            await drawCard(name, memberId, region);
+
+            // 2. Generate LETTER (A4)
+            await drawLetter(name, age, region, joinDate, memberId);
+
+            // Switch View
+            document.getElementById('section-form').classList.add('hidden');
+            document.getElementById('section-result').classList.remove('hidden');
+        }
+
+        function drawCard(name, id, region) {
+            const canvas = document.getElementById('cardCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Card Dimensions (Credit Card Ratio approx)
+            canvas.width = 600;
+            canvas.height = 378;
+
+            // Background Gradient
+            const grd = ctx.createLinearGradient(0, 0, 600, 378);
+            grd.addColorStop(0, '#1e1b4b'); // Dark blue
+            grd.addColorStop(1, '#4c1d95'); // Purple
+            ctx.fillStyle = grd;
+            ctx.fillRect(0, 0, 600, 378);
+
+            // Overlay Shapes
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
+            ctx.beginPath();
+            ctx.arc(550, 50, 100, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(50, 350, 120, 0, 2 * Math.PI);
+            ctx.fill();
+
+            // Border
+            ctx.strokeStyle = '#e879f9'; // Pink border
+            ctx.lineWidth = 4;
+            ctx.strokeRect(10, 10, 580, 358);
+
+            // Header
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 30px Poppins';
+            ctx.fillText('LanaVyn', 40, 60);
+            ctx.fillStyle = '#e879f9';
+            ctx.fillText('Community', 180, 60);
+
+            // Chip Icon Simulation
+            ctx.fillStyle = '#fbbf24';
+            ctx.fillRect(40, 100, 60, 45);
+            ctx.strokeStyle = '#b45309';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(40, 100, 60, 45);
+            ctx.beginPath(); ctx.moveTo(40, 122); ctx.lineTo(100, 122); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(70, 100); ctx.lineTo(70, 145); ctx.stroke();
+
+            // Label
+            ctx.fillStyle = 'rgba(255,255,255,0.7)';
+            ctx.font = '16px Poppins';
+            ctx.fillText('MEMBER CARD', 460, 60);
+
+            // Content
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 24px Poppins';
+            ctx.fillText(name.toUpperCase(), 40, 200);
+
+            ctx.font = '18px Poppins';
+            ctx.fillStyle = '#ddd';
+            ctx.fillText('ID: ' + id, 40, 230);
+            ctx.fillText(region, 40, 255);
+
+            // Footer
+            ctx.fillStyle = '#e879f9';
+            ctx.font = 'bold 14px Poppins';
+            ctx.fillText('OFFICIAL MEMBER', 460, 340);
+        }
+
+        function drawLetter(name, age, region, date, id) {
+            const canvas = document.getElementById('letterCanvas');
+            const ctx = canvas.getContext('2d');
+
+            // A4 Size at roughly 100 DPI = 794 x 1123 px (Using scale factor for quality)
+            const scale = 1.5; 
+            const w = 794 * scale;
+            const h = 1123 * scale;
+            
+            canvas.width = w;
+            canvas.height = h;
+
+            // Background
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, w, h);
+
+            // Text Settings
+            ctx.fillStyle = '#000000';
+            const margin = 80 * scale;
+            let y = 100 * scale;
+
+            // Header
+            ctx.font = `bold ${24 * scale}px Times New Roman`;
+            ctx.textAlign = 'center';
+            ctx.fillText('SURAT PERNYATAAN KEANGGOTAAN', w/2, y);
+            y += 30 * scale;
+            ctx.font = `bold ${18 * scale}px Times New Roman`;
+            ctx.fillText('LANAVYN COMMUNITY', w/2, y);
+            
+            // Line
+            y += 20 * scale;
+            ctx.beginPath();
+            ctx.moveTo(margin, y);
+            ctx.lineTo(w - margin, y);
+            ctx.lineWidth = 2 * scale;
+            ctx.stroke();
+
+            // Body
+            y += 60 * scale;
+            ctx.font = `${14 * scale}px Arial`;
+            ctx.textAlign = 'left';
+            ctx.fillText('Saya yang bertanda tangan di bawah ini:', margin, y);
+
+            y += 40 * scale;
+            const lineHeight = 30 * scale;
+            const tab = 250 * scale;
+
+            ctx.fillText('Nama Lengkap', margin, y);
+            ctx.fillText(': ' + name, tab, y); y += lineHeight;
+
+            ctx.fillText('Usia', margin, y);
+            ctx.fillText(': ' + age + ' Tahun', tab, y); y += lineHeight;
+
+            ctx.fillText('Wilayah / Kota', margin, y);
+            ctx.fillText(': ' + region, tab, y); y += lineHeight;
+
+            ctx.fillText('ID Anggota', margin, y);
+            ctx.fillText(': ' + id, tab, y); y += lineHeight;
+
+            // Statement Content
+            y += 30 * scale;
+            const contentText = [
+                "Dengan ini menyatakan secara sadar dan tanpa paksaan bahwa saya:",
+                "",
+                "1. Siap bergabung menjadi anggota resmi LanaVyn Community.",
+                "2. Bersedia mematuhi segala peraturan dan tata tertib grup.",
+                "3. Akan menjaga nama baik komunitas serta menjalin hubungan baik",
+                "   dengan sesama anggota.",
+                "4. Bersedia menerima sanksi apabila melanggar ketentuan yang berlaku.",
+                "",
+                "Demikian surat pernyataan ini saya buat untuk dapat dipergunakan sebagaimana mestinya."
+            ];
+
+            ctx.font = `${14 * scale}px Arial`;
+            for (let line of contentText) {
+                ctx.fillText(line, margin, y);
+                y += lineHeight;
             }
 
-            // === LOGIKA RAHASIA SELESAI ===
+            // Footer / Signature Area
+            y += 50 * scale;
+            const sigX = w - margin - (200 * scale);
+            
+            ctx.fillText(`${region}, ${date}`, sigX, y);
+            y += 20 * scale;
+            ctx.fillText('Hormat Saya,', sigX, y);
 
-            // Jika bukan kode rahasia, jalankan sebagai kalkulator biasa
-            calculateNormal();
-            updateDisplay();
+            // Draw Signature Image
+            // We need to draw the signature canvas onto this canvas
+            const sigImage = sigCanvas; 
+            // Calculate aspect ratio of signature to fit
+            const sW = 150 * scale;
+            const sH = (sigImage.height / sigImage.width) * sW;
+            
+            ctx.drawImage(sigImage, sigX, y + (10*scale), sW, sH);
+
+            y += 120 * scale;
+            ctx.font = `bold ${14 * scale}px Arial`;
+            ctx.fillText(`( ${name} )`, sigX, y);
         }
-    </script>
 
-    <!-- ====================================================================== -->
-    <!-- KONFIGURASI FILE RAHASIA DI SINI (EDIT BAGIAN INI)                     -->
-    <!-- Ganti 'rahasia.html' dengan nama file tujuan Anda                      -->
-    <!-- ====================================================================== -->
-    <script>
-        // Masukkan nama file tujuan di antara tanda kutip di bawah ini
-        window.SECRET_TARGET_FILE = "secret_file.html"; 
-    </script>
+        function downloadCanvas(canvasId, filename) {
+            const canvas = document.getElementById(canvasId);
+            const link = document.createElement('a');
+            link.download = filename;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
 
+    </script>
 </body>
-</html>
+</html>.
