@@ -3,453 +3,559 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LanaVyn Community - Official Portal</title>
+    <title>Chameleon Browser OS</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
         
         body {
-            font-family: 'Poppins', sans-serif;
-            background-color: #0f172a; /* Slate 900 */
+            font-family: 'Roboto', sans-serif;
+            background-color: #0f172a;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* --- UI COMPONENTS --- */
+        .browser-skin {
+            background: #dfe3e7;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+            overflow: hidden;
+            transition: all 0.5s ease;
+            position: relative;
+        }
+
+        .skin-desktop { width: 95%; height: 90%; }
+        .skin-mobile { width: 375px; height: 800px; border: 8px solid #333; border-radius: 30px; }
+        
+        .omnibox {
+            flex-grow: 1;
+            background: #f1f3f4;
+            border-radius: 20px;
+            padding: 6px 16px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        .omnibox:focus-within {
+            background: #fff;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            border: 2px solid #1a73e8;
+        }
+
+        /* --- MODALS & MENUS --- */
+        .popup-menu {
+            position: absolute;
+            top: 50px;
+            right: 10px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            width: 300px;
+            z-index: 100;
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            animation: fadeIn 0.2s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .menu-item {
+            padding: 10px 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #374151;
+            font-size: 14px;
+        }
+        .menu-item:hover { background-color: #f3f4f6; }
+
+        .modal-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 200;
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-box {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+
+        /* --- UTILS --- */
+        .avatar-circle {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #1a73e8;
             color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        
+        .ua-badge {
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: #e5e7eb;
+            color: #4b5563;
+            margin-left: auto;
         }
 
-        .gradient-text {
-            background: linear-gradient(to right, #a855f7, #ec4899);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
+        /* Scrollbar */
+        .history-list::-webkit-scrollbar { width: 6px; }
+        .history-list::-webkit-scrollbar-track { background: #f1f1f1; }
+        .history-list::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
 
-        .glass-card {
-            background: rgba(30, 41, 59, 0.7);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        /* Signature Canvas styling */
-        canvas#signaturePad {
-            background-color: #fff;
-            border-radius: 0.5rem;
-            cursor: crosshair;
-            touch-action: none; /* Prevent scrolling while signing */
-        }
     </style>
 </head>
-<body class="min-h-screen flex flex-col">
+<body>
 
-    <!-- Navbar -->
-    <nav class="p-4 glass-card sticky top-0 z-50">
-        <div class="container mx-auto flex justify-between items-center">
-            <h1 class="text-2xl font-bold tracking-tighter">Lana<span class="text-purple-500">Vyn</span></h1>
-            <a href="https://chat.whatsapp.com/KCnQv5xdjZb60UUzbLqUj4" target="_blank" class="text-sm bg-green-600 hover:bg-green-700 px-3 py-1 rounded-full transition">
-                <i class="fab fa-whatsapp"></i> Grup WA
-            </a>
-        </div>
-    </nav>
-
-    <!-- Main Content Area -->
-    <main class="flex-grow container mx-auto p-4 flex flex-col items-center justify-center relative">
+    <!-- BROWSER CONTAINER -->
+    <div id="browser-container" class="browser-skin skin-desktop">
         
-        <!-- SECTION 1: LANDING -->
-        <div id="section-landing" class="text-center space-y-6 max-w-2xl animate-fade-in">
-            <div class="mb-4 inline-block p-4 rounded-full bg-purple-900/30 border border-purple-500/30">
-                <i class="fas fa-users text-4xl text-purple-400"></i>
+        <!-- HEADER / TOOLBAR -->
+        <div class="bg-white border-b border-gray-300 p-2 flex items-center gap-3 z-20 relative">
+            <!-- Controls -->
+            <div class="flex gap-2 text-gray-500">
+                <button onclick="goBack()" class="hover:bg-gray-100 p-2 rounded-full"><i class="fa-solid fa-arrow-left"></i></button>
+                <button onclick="reloadPage()" class="hover:bg-gray-100 p-2 rounded-full"><i class="fa-solid fa-rotate-right"></i></button>
             </div>
-            <h1 class="text-4xl md:text-6xl font-bold">Selamat Datang di <br><span class="gradient-text">LanaVyn Community</span></h1>
-            <p class="text-gray-400 text-lg">Komunitas solid untuk berbagi, belajar, dan berkembang bersama.</p>
-            
-            <div class="flex flex-col md:flex-row gap-4 justify-center mt-8">
-                <a href="https://chat.whatsapp.com/KCnQv5xdjZb60UUzbLqUj4" target="_blank" class="px-8 py-3 bg-green-600 hover:bg-green-700 rounded-xl font-bold shadow-lg shadow-green-900/20 transition transform hover:scale-105 flex items-center justify-center gap-2">
-                    <i class="fab fa-whatsapp text-xl"></i> Gabung Grup Sekarang
-                </a>
-                <button onclick="goToForm()" class="px-8 py-3 bg-white text-slate-900 hover:bg-gray-200 rounded-xl font-bold shadow-lg transition transform hover:scale-105 flex items-center justify-center gap-2">
-                    <i class="fas fa-id-card"></i> Sudah Join? Bikin Kartu
-                </button>
-            </div>
-        </div>
 
-        <!-- SECTION 2: FORM -->
-        <div id="section-form" class="hidden w-full max-w-md">
-            <div class="glass-card p-6 rounded-2xl shadow-2xl border border-purple-500/20">
-                <div class="flex items-center gap-3 mb-6 border-b border-gray-700 pb-4">
-                    <button onclick="goBack()" class="text-gray-400 hover:text-white"><i class="fas fa-arrow-left"></i></button>
-                    <h2 class="text-xl font-bold">Data Anggota</h2>
+            <!-- Omnibox -->
+            <div class="omnibox group">
+                <i class="fa-solid fa-lock text-emerald-600 text-xs mr-2"></i>
+                <input type="text" id="url-input" class="bg-transparent border-none outline-none w-full text-gray-700" placeholder="Ketik URL atau pencarian..." onkeypress="handleEnter(event)">
+            </div>
+
+            <!-- Action Icons -->
+            <div class="flex items-center gap-3 pr-2">
+                <!-- UA Indicator -->
+                <div onclick="toggleMenu('ua-menu')" class="cursor-pointer hover:bg-gray-100 p-1 rounded flex items-center gap-1" title="Ganti User Agent">
+                    <i id="ua-icon" class="fa-brands fa-windows text-blue-600 text-lg"></i>
                 </div>
 
-                <form id="memberForm" onsubmit="event.preventDefault(); generateDocuments();" class="space-y-4">
-                    <div>
-                        <label class="block text-sm text-gray-400 mb-1">Nama Lengkap / Nickname</label>
-                        <input type="text" id="inputName" required class="w-full bg-slate-800 border border-slate-600 rounded-lg p-3 focus:outline-none focus:border-purple-500 text-white" placeholder="Contoh: Lana Vyn">
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm text-gray-400 mb-1">Usia</label>
-                            <input type="number" id="inputAge" required class="w-full bg-slate-800 border border-slate-600 rounded-lg p-3 focus:outline-none focus:border-purple-500 text-white" placeholder="18">
-                        </div>
-                        <div>
-                            <label class="block text-sm text-gray-400 mb-1">Wilayah/Kota</label>
-                            <input type="text" id="inputRegion" required class="w-full bg-slate-800 border border-slate-600 rounded-lg p-3 focus:outline-none focus:border-purple-500 text-white" placeholder="Jakarta">
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm text-gray-400 mb-1">Tanda Tangan (Wajib)</label>
-                        <div class="border border-slate-600 rounded-lg overflow-hidden relative">
-                            <canvas id="signaturePad" width="350" height="150" class="w-full bg-white"></canvas>
-                            <button type="button" onclick="clearSignature()" class="absolute top-2 right-2 text-xs bg-red-500 text-white px-2 py-1 rounded shadow hover:bg-red-600">Hapus</button>
-                        </div>
-                        <p class="text-xs text-gray-500 mt-1">*Tanda tangan di kotak putih di atas.</p>
-                    </div>
-
-                    <div class="flex items-start gap-2 pt-2">
-                        <input type="checkbox" id="checkReady" required class="mt-1 w-4 h-4 accent-purple-500">
-                        <label for="checkReady" class="text-sm text-gray-300">Saya menyatakan siap mematuhi peraturan LanaVyn Community.</label>
-                    </div>
-
-                    <button type="submit" class="w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg font-bold shadow-lg hover:opacity-90 transition mt-4">
-                        <i class="fas fa-magic mr-2"></i> Buat Kartu & Surat
-                    </button>
-                </form>
-            </div>
-        </div>
-
-        <!-- SECTION 3: RESULT -->
-        <div id="section-result" class="hidden w-full max-w-4xl space-y-8 pb-10">
-            <div class="text-center">
-                <h2 class="text-3xl font-bold mb-2">Selamat Bergabung!</h2>
-                <p class="text-gray-400">Berkas keanggotaan Anda telah siap.</p>
-                <button onclick="location.reload()" class="mt-4 text-sm text-purple-400 hover:text-purple-300 underline">Buat Ulang</button>
-            </div>
-
-            <div class="grid md:grid-cols-2 gap-8 items-start">
-                
-                <!-- Card Result -->
-                <div class="space-y-4">
-                    <h3 class="text-xl font-bold border-l-4 border-purple-500 pl-3">1. Kartu Member</h3>
-                    <div class="bg-slate-800 p-2 rounded-xl shadow-xl">
-                        <canvas id="cardCanvas" class="w-full rounded-lg shadow-inner"></canvas>
-                    </div>
-                    <button onclick="downloadCanvas('cardCanvas', 'LanaVyn_MemberCard.png')" class="w-full py-2 bg-slate-700 hover:bg-slate-600 rounded-lg font-semibold transition flex items-center justify-center gap-2">
-                        <i class="fas fa-download"></i> Download Kartu
-                    </button>
+                <!-- History -->
+                <div onclick="openHistory()" class="cursor-pointer hover:bg-gray-100 p-2 rounded-full text-gray-600" title="History">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
                 </div>
 
-                <!-- Letter Result -->
-                <div class="space-y-4">
-                    <h3 class="text-xl font-bold border-l-4 border-pink-500 pl-3">2. Surat Pernyataan (A4)</h3>
-                    <div class="bg-slate-800 p-2 rounded-xl shadow-xl h-64 overflow-y-auto custom-scrollbar">
-                        <!-- Canvas is scaled down visually but full res for download -->
-                        <canvas id="letterCanvas" class="w-full shadow-inner bg-white"></canvas>
-                    </div>
-                    <p class="text-xs text-center text-gray-500">Preview diperkecil (scroll untuk melihat). Hasil download resolusi penuh.</p>
-                    <button onclick="downloadCanvas('letterCanvas', 'LanaVyn_SuratPernyataan.png')" class="w-full py-2 bg-slate-700 hover:bg-slate-600 rounded-lg font-semibold transition flex items-center justify-center gap-2">
-                        <i class="fas fa-download"></i> Download Surat
-                    </button>
+                <!-- Profile Avatar -->
+                <div id="profile-btn" onclick="toggleMenu('profile-menu')" class="avatar-circle hover:ring-2 ring-blue-300 transition">
+                    G
                 </div>
             </div>
         </div>
 
-    </main>
+        <!-- MENUS (DROPDOWNS) -->
+        
+        <!-- Profile Menu -->
+        <div id="profile-menu" class="popup-menu">
+            <div class="p-4 border-b border-gray-100 bg-gray-50">
+                <p class="text-xs text-gray-500">Sedang login sebagai</p>
+                <p id="menu-username" class="font-bold text-gray-800 text-lg">Guest</p>
+                <p class="text-xs text-green-600 flex items-center gap-1 mt-1"><i class="fa-solid fa-circle text-[8px]"></i> Online</p>
+            </div>
+            <div onclick="openModal('create-account-modal')" class="menu-item">
+                <i class="fa-solid fa-user-plus text-gray-400"></i> Buat Akun Baru
+            </div>
+            <div onclick="logout()" class="menu-item text-red-500 hover:bg-red-50">
+                <i class="fa-solid fa-sign-out-alt"></i> Reset / Logout
+            </div>
+        </div>
 
-    <footer class="p-4 text-center text-gray-600 text-sm">
-        &copy; 2024 LanaVyn Community. All rights reserved.
-    </footer>
+        <!-- UA Menu -->
+        <div id="ua-menu" class="popup-menu" style="width: 250px;">
+            <div class="p-3 border-b border-gray-100 font-bold text-gray-600 text-sm">Pilih User Agent</div>
+            <div onclick="setUA('windows')" class="menu-item justify-between">
+                <span><i class="fa-brands fa-windows text-blue-500 mr-2"></i> Windows 11</span>
+                <i class="fa-solid fa-check text-green-500 ua-check hidden" id="check-windows"></i>
+            </div>
+            <div onclick="setUA('mac')" class="menu-item justify-between">
+                <span><i class="fa-brands fa-apple text-gray-800 mr-2"></i> MacOS</span>
+                <i class="fa-solid fa-check text-green-500 ua-check hidden" id="check-mac"></i>
+            </div>
+            <div onclick="setUA('android')" class="menu-item justify-between">
+                <span><i class="fa-brands fa-android text-green-500 mr-2"></i> Android 13</span>
+                <i class="fa-solid fa-check text-green-500 ua-check hidden" id="check-android"></i>
+            </div>
+            <div onclick="setUA('ios')" class="menu-item justify-between">
+                <span><i class="fa-brands fa-app-store-ios text-blue-400 mr-2"></i> iPhone 14</span>
+                <i class="fa-solid fa-check text-green-500 ua-check hidden" id="check-ios"></i>
+            </div>
+            <div class="p-2 bg-yellow-50 text-[10px] text-yellow-700 m-2 rounded border border-yellow-200">
+                <i class="fa-solid fa-triangle-exclamation"></i> UA ini hanya simulasi untuk bypass deteksi basic.
+            </div>
+        </div>
 
-    <!-- LOGIC SCRIPT -->
+        <!-- IFRAME / VIEWPORT -->
+        <div class="flex-grow relative bg-white">
+            <div id="loader" class="absolute inset-0 bg-white flex flex-col items-center justify-center z-10 hidden">
+                <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mb-2"></div>
+                <p class="text-gray-400 text-sm">Menghubungkan via User Agent...</p>
+            </div>
+            <!-- Pesan Info UA di dalam browser -->
+            <div id="ua-overlay" class="absolute top-0 left-0 w-full bg-yellow-100 text-yellow-800 text-xs px-2 py-1 text-center border-b border-yellow-300 hidden">
+                Browsing sebagai: <span id="overlay-ua-name" class="font-bold">Windows</span>
+            </div>
+            <iframe id="main-frame" src="about:blank" class="w-full h-full border-none"></iframe>
+        </div>
+
+        <!-- FOOTER STATUS BAR -->
+        <div class="bg-gray-100 border-t border-gray-300 px-2 py-1 text-[10px] text-gray-500 flex justify-between">
+            <span id="status-text">Ready</span>
+            <span>Secure Connection <i class="fa-solid fa-shield-halved text-green-500"></i></span>
+        </div>
+
+    </div>
+
+    <!-- MODAL: HISTORY -->
+    <div id="history-modal" class="modal-overlay">
+        <div class="modal-box h-[500px] flex flex-col">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold text-gray-800">Riwayat Penelusuran</h2>
+                <button onclick="closeModal('history-modal')" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <div class="flex justify-between mb-2">
+                 <span class="text-xs text-gray-500">Disimpan Lokal</span>
+                 <button onclick="clearHistory()" class="text-xs text-red-500 hover:underline">Hapus Semua</button>
+            </div>
+            <div id="history-list" class="flex-grow overflow-y-auto history-list space-y-2">
+                <!-- History Items injected here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: CREATE ACCOUNT -->
+    <div id="create-account-modal" class="modal-overlay">
+        <div class="modal-box">
+            <h2 class="text-xl font-bold text-gray-800 mb-4">Buat Profil Baru</h2>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Nama Pengguna</label>
+                    <input type="text" id="new-username" class="mt-1 w-full border border-gray-300 rounded p-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Contoh: HackerIndo">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Pilih Warna Avatar</label>
+                    <div class="flex gap-2 mt-2">
+                        <div onclick="selectColor('bg-blue-600')" class="w-8 h-8 rounded-full bg-blue-600 cursor-pointer hover:scale-110 border-2 border-transparent hover:border-black transition color-opt"></div>
+                        <div onclick="selectColor('bg-emerald-500')" class="w-8 h-8 rounded-full bg-emerald-500 cursor-pointer hover:scale-110 border-2 border-transparent hover:border-black transition color-opt"></div>
+                        <div onclick="selectColor('bg-purple-600')" class="w-8 h-8 rounded-full bg-purple-600 cursor-pointer hover:scale-110 border-2 border-transparent hover:border-black transition color-opt"></div>
+                        <div onclick="selectColor('bg-orange-500')" class="w-8 h-8 rounded-full bg-orange-500 cursor-pointer hover:scale-110 border-2 border-transparent hover:border-black transition color-opt"></div>
+                    </div>
+                </div>
+                <button onclick="createAccount()" class="w-full bg-blue-600 text-white font-bold py-2 rounded hover:bg-blue-700">Buat Profil</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- DEVICE SWITCHER BUTTON -->
+    <button onclick="toggleDeviceMode()" class="fixed bottom-5 right-5 bg-gray-800 text-white p-4 rounded-full shadow-xl hover:scale-110 transition z-50" title="Ganti Mode (Desktop/HP)">
+        <i class="fa-solid fa-mobile-screen-button"></i>
+    </button>
+
     <script>
-        // --- Navigation Logic ---
-        function goToForm() {
-            document.getElementById('section-landing').classList.add('hidden');
-            document.getElementById('section-form').classList.remove('hidden');
-            resizeCanvas(); // Ensure signature pad fits
+        // --- DATABASE & STATE MANAGEMENT (LOCALSTORAGE) ---
+        const DB_KEY = 'chameleon_os_v1';
+        
+        // Default State
+        let state = {
+            currentUser: { name: 'Guest', color: 'bg-gray-500', initials: 'G' },
+            history: [],
+            userAgent: 'windows', // windows, mac, android, ios
+            isMobileView: false
+        };
+
+        let selectedColor = 'bg-blue-600';
+
+        // Load Data on Start
+        function loadState() {
+            const saved = localStorage.getItem(DB_KEY);
+            if (saved) {
+                state = JSON.parse(saved);
+                // Re-apply settings
+                applyUserProfile();
+                applyUA();
+                if(state.isMobileView) toggleDeviceMode(true);
+            }
+        }
+
+        function saveState() {
+            localStorage.setItem(DB_KEY, JSON.stringify(state));
+        }
+
+        // --- BROWSER ENGINE ---
+
+        function handleEnter(e) {
+            if (e.key === 'Enter') {
+                const input = document.getElementById('url-input');
+                let url = input.value.trim();
+                
+                if(!url) return;
+
+                // Simple parser
+                if (!url.includes('.') || url.includes(' ')) {
+                    url = 'https://www.bing.com/search?q=' + encodeURIComponent(url);
+                } else if (!url.startsWith('http')) {
+                    url = 'https://' + url;
+                }
+
+                navigate(url);
+            }
+        }
+
+        function navigate(url) {
+            const frame = document.getElementById('main-frame');
+            const loader = document.getElementById('loader');
+            
+            // UI Updates
+            loader.classList.remove('hidden');
+            document.getElementById('url-input').value = url;
+            document.getElementById('status-text').innerText = 'Connecting...';
+
+            // Simulate UA Delay
+            setTimeout(() => {
+                frame.src = url;
+                loader.classList.add('hidden');
+                document.getElementById('status-text').innerText = 'Done';
+                
+                // Add to History
+                addToHistory(url);
+            }, 800);
+        }
+
+        function reloadPage() {
+            const frame = document.getElementById('main-frame');
+            frame.src = frame.src;
         }
 
         function goBack() {
-            document.getElementById('section-form').classList.add('hidden');
-            document.getElementById('section-landing').classList.remove('hidden');
+            // Limited iframe capabilities
+            alert("Fungsi Back terbatas pada iframe. Gunakan tombol di dalam website.");
         }
 
-        // --- Signature Pad Logic ---
-        const sigCanvas = document.getElementById('signaturePad');
-        const sigCtx = sigCanvas.getContext('2d');
-        let isDrawing = false;
-        let lastX = 0;
-        let lastY = 0;
+        // --- ACCOUNT SYSTEM ---
 
-        // Resize signature canvas to fit container
-        function resizeCanvas() {
-            const ratio = Math.max(window.devicePixelRatio || 1, 1);
-            sigCanvas.width = sigCanvas.offsetWidth * ratio;
-            sigCanvas.height = sigCanvas.offsetHeight * ratio;
-            sigCtx.scale(ratio, ratio);
-        }
-        window.addEventListener("resize", resizeCanvas);
-
-        // Drawing events (Mouse & Touch)
-        function getPos(e) {
-            const rect = sigCanvas.getBoundingClientRect();
-            let clientX = e.clientX;
-            let clientY = e.clientY;
+        function applyUserProfile() {
+            const user = state.currentUser;
+            const btn = document.getElementById('profile-btn');
             
-            if(e.touches && e.touches.length > 0) {
-                clientX = e.touches[0].clientX;
-                clientY = e.touches[0].clientY;
-            }
+            btn.innerText = user.initials;
+            // Remove old colors
+            btn.className = `avatar-circle hover:ring-2 ring-blue-300 transition ${user.color}`;
+            
+            document.getElementById('menu-username').innerText = user.name;
+        }
 
-            return {
-                x: clientX - rect.left,
-                y: clientY - rect.top
+        function selectColor(colorClass) {
+            selectedColor = colorClass;
+            // Visual feedback could be added here
+            alert("Warna dipilih. Klik 'Buat Profil' untuk simpan.");
+        }
+
+        function createAccount() {
+            const name = document.getElementById('new-username').value;
+            if(!name) return alert("Nama tidak boleh kosong!");
+
+            state.currentUser = {
+                name: name,
+                initials: name.substring(0,1).toUpperCase(),
+                color: selectedColor
             };
-        }
-
-        function startDrawing(e) {
-            isDrawing = true;
-            const pos = getPos(e);
-            lastX = pos.x;
-            lastY = pos.y;
-            e.preventDefault(); // Stop scrolling on touch
-        }
-
-        function draw(e) {
-            if (!isDrawing) return;
-            const pos = getPos(e);
             
-            sigCtx.beginPath();
-            sigCtx.moveTo(lastX, lastY);
-            sigCtx.lineTo(pos.x, pos.y);
-            sigCtx.strokeStyle = '#000';
-            sigCtx.lineWidth = 2;
-            sigCtx.lineCap = 'round';
-            sigCtx.stroke();
-            
-            lastX = pos.x;
-            lastY = pos.y;
-            e.preventDefault();
+            saveState();
+            applyUserProfile();
+            closeModal('create-account-modal');
+            alert(`Selamat datang, Agent ${name}!`);
         }
 
-        function stopDrawing() {
-            isDrawing = false;
-        }
-
-        function clearSignature() {
-            sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height);
-        }
-
-        // Event Listeners for Signature
-        sigCanvas.addEventListener('mousedown', startDrawing);
-        sigCanvas.addEventListener('mousemove', draw);
-        sigCanvas.addEventListener('mouseup', stopDrawing);
-        sigCanvas.addEventListener('mouseout', stopDrawing);
-        
-        sigCanvas.addEventListener('touchstart', startDrawing, {passive: false});
-        sigCanvas.addEventListener('touchmove', draw, {passive: false});
-        sigCanvas.addEventListener('touchend', stopDrawing);
-
-
-        // --- Generator Logic ---
-        async function generateDocuments() {
-            // Check if signed
-            const pixelBuffer = sigCtx.getImageData(0, 0, sigCanvas.width, sigCanvas.height).data;
-            const isSigned = pixelBuffer.some(channel => channel !== 0); // Check for non-transparent pixels (in simple terms, background is white but checking logic)
-            // Simpler check: check if empty (white)
-            // Actually, since we fill white background via CSS, canvas is transparent by default until drawn? 
-            // Let's force draw check logic or just trust user.
-            // For this demo, let's assume valid if inputs valid.
-
-            const name = document.getElementById('inputName').value;
-            const age = document.getElementById('inputAge').value;
-            const region = document.getElementById('inputRegion').value;
-            
-            // Random Member ID
-            const memberId = 'LV-' + Math.floor(1000 + Math.random() * 9000);
-            const joinDate = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
-
-            // 1. Generate ID CARD
-            await drawCard(name, memberId, region);
-
-            // 2. Generate LETTER (A4)
-            await drawLetter(name, age, region, joinDate, memberId);
-
-            // Switch View
-            document.getElementById('section-form').classList.add('hidden');
-            document.getElementById('section-result').classList.remove('hidden');
-        }
-
-        function drawCard(name, id, region) {
-            const canvas = document.getElementById('cardCanvas');
-            const ctx = canvas.getContext('2d');
-            
-            // Card Dimensions (Credit Card Ratio approx)
-            canvas.width = 600;
-            canvas.height = 378;
-
-            // Background Gradient
-            const grd = ctx.createLinearGradient(0, 0, 600, 378);
-            grd.addColorStop(0, '#1e1b4b'); // Dark blue
-            grd.addColorStop(1, '#4c1d95'); // Purple
-            ctx.fillStyle = grd;
-            ctx.fillRect(0, 0, 600, 378);
-
-            // Overlay Shapes
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
-            ctx.beginPath();
-            ctx.arc(550, 50, 100, 0, 2 * Math.PI);
-            ctx.fill();
-            ctx.beginPath();
-            ctx.arc(50, 350, 120, 0, 2 * Math.PI);
-            ctx.fill();
-
-            // Border
-            ctx.strokeStyle = '#e879f9'; // Pink border
-            ctx.lineWidth = 4;
-            ctx.strokeRect(10, 10, 580, 358);
-
-            // Header
-            ctx.fillStyle = '#fff';
-            ctx.font = 'bold 30px Poppins';
-            ctx.fillText('LanaVyn', 40, 60);
-            ctx.fillStyle = '#e879f9';
-            ctx.fillText('Community', 180, 60);
-
-            // Chip Icon Simulation
-            ctx.fillStyle = '#fbbf24';
-            ctx.fillRect(40, 100, 60, 45);
-            ctx.strokeStyle = '#b45309';
-            ctx.lineWidth = 1;
-            ctx.strokeRect(40, 100, 60, 45);
-            ctx.beginPath(); ctx.moveTo(40, 122); ctx.lineTo(100, 122); ctx.stroke();
-            ctx.beginPath(); ctx.moveTo(70, 100); ctx.lineTo(70, 145); ctx.stroke();
-
-            // Label
-            ctx.fillStyle = 'rgba(255,255,255,0.7)';
-            ctx.font = '16px Poppins';
-            ctx.fillText('MEMBER CARD', 460, 60);
-
-            // Content
-            ctx.fillStyle = '#fff';
-            ctx.font = 'bold 24px Poppins';
-            ctx.fillText(name.toUpperCase(), 40, 200);
-
-            ctx.font = '18px Poppins';
-            ctx.fillStyle = '#ddd';
-            ctx.fillText('ID: ' + id, 40, 230);
-            ctx.fillText(region, 40, 255);
-
-            // Footer
-            ctx.fillStyle = '#e879f9';
-            ctx.font = 'bold 14px Poppins';
-            ctx.fillText('OFFICIAL MEMBER', 460, 340);
-        }
-
-        function drawLetter(name, age, region, date, id) {
-            const canvas = document.getElementById('letterCanvas');
-            const ctx = canvas.getContext('2d');
-
-            // A4 Size at roughly 100 DPI = 794 x 1123 px (Using scale factor for quality)
-            const scale = 1.5; 
-            const w = 794 * scale;
-            const h = 1123 * scale;
-            
-            canvas.width = w;
-            canvas.height = h;
-
-            // Background
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(0, 0, w, h);
-
-            // Text Settings
-            ctx.fillStyle = '#000000';
-            const margin = 80 * scale;
-            let y = 100 * scale;
-
-            // Header
-            ctx.font = `bold ${24 * scale}px Times New Roman`;
-            ctx.textAlign = 'center';
-            ctx.fillText('SURAT PERNYATAAN KEANGGOTAAN', w/2, y);
-            y += 30 * scale;
-            ctx.font = `bold ${18 * scale}px Times New Roman`;
-            ctx.fillText('LANAVYN COMMUNITY', w/2, y);
-            
-            // Line
-            y += 20 * scale;
-            ctx.beginPath();
-            ctx.moveTo(margin, y);
-            ctx.lineTo(w - margin, y);
-            ctx.lineWidth = 2 * scale;
-            ctx.stroke();
-
-            // Body
-            y += 60 * scale;
-            ctx.font = `${14 * scale}px Arial`;
-            ctx.textAlign = 'left';
-            ctx.fillText('Saya yang bertanda tangan di bawah ini:', margin, y);
-
-            y += 40 * scale;
-            const lineHeight = 30 * scale;
-            const tab = 250 * scale;
-
-            ctx.fillText('Nama Lengkap', margin, y);
-            ctx.fillText(': ' + name, tab, y); y += lineHeight;
-
-            ctx.fillText('Usia', margin, y);
-            ctx.fillText(': ' + age + ' Tahun', tab, y); y += lineHeight;
-
-            ctx.fillText('Wilayah / Kota', margin, y);
-            ctx.fillText(': ' + region, tab, y); y += lineHeight;
-
-            ctx.fillText('ID Anggota', margin, y);
-            ctx.fillText(': ' + id, tab, y); y += lineHeight;
-
-            // Statement Content
-            y += 30 * scale;
-            const contentText = [
-                "Dengan ini menyatakan secara sadar dan tanpa paksaan bahwa saya:",
-                "",
-                "1. Siap bergabung menjadi anggota resmi LanaVyn Community.",
-                "2. Bersedia mematuhi segala peraturan dan tata tertib grup.",
-                "3. Akan menjaga nama baik komunitas serta menjalin hubungan baik",
-                "   dengan sesama anggota.",
-                "4. Bersedia menerima sanksi apabila melanggar ketentuan yang berlaku.",
-                "",
-                "Demikian surat pernyataan ini saya buat untuk dapat dipergunakan sebagaimana mestinya."
-            ];
-
-            ctx.font = `${14 * scale}px Arial`;
-            for (let line of contentText) {
-                ctx.fillText(line, margin, y);
-                y += lineHeight;
+        function logout() {
+            if(confirm("Yakin ingin reset profil ke Guest?")) {
+                state.currentUser = { name: 'Guest', color: 'bg-gray-500', initials: 'G' };
+                saveState();
+                applyUserProfile();
+                closeMenu('profile-menu');
             }
-
-            // Footer / Signature Area
-            y += 50 * scale;
-            const sigX = w - margin - (200 * scale);
-            
-            ctx.fillText(`${region}, ${date}`, sigX, y);
-            y += 20 * scale;
-            ctx.fillText('Hormat Saya,', sigX, y);
-
-            // Draw Signature Image
-            // We need to draw the signature canvas onto this canvas
-            const sigImage = sigCanvas; 
-            // Calculate aspect ratio of signature to fit
-            const sW = 150 * scale;
-            const sH = (sigImage.height / sigImage.width) * sW;
-            
-            ctx.drawImage(sigImage, sigX, y + (10*scale), sW, sH);
-
-            y += 120 * scale;
-            ctx.font = `bold ${14 * scale}px Arial`;
-            ctx.fillText(`( ${name} )`, sigX, y);
         }
 
-        function downloadCanvas(canvasId, filename) {
-            const canvas = document.getElementById(canvasId);
-            const link = document.createElement('a');
-            link.download = filename;
-            link.href = canvas.toDataURL('image/png');
-            link.click();
+        // --- HISTORY SYSTEM ---
+
+        function addToHistory(url) {
+            const now = new Date();
+            const time = now.toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'});
+            
+            // Unshift adds to top
+            state.history.unshift({ url: url, time: time, date: now.toLocaleDateString() });
+            
+            // Limit to last 50
+            if(state.history.length > 50) state.history.pop();
+            
+            saveState();
+        }
+
+        function openHistory() {
+            const list = document.getElementById('history-list');
+            list.innerHTML = '';
+
+            if(state.history.length === 0) {
+                list.innerHTML = '<p class="text-center text-gray-400 mt-10">Belum ada riwayat.</p>';
+            } else {
+                state.history.forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = "flex items-start gap-3 p-2 hover:bg-gray-50 rounded border-b border-gray-100";
+                    div.innerHTML = `
+                        <div class="text-xs text-gray-400 min-w-[50px]">${item.time}</div>
+                        <div class="overflow-hidden">
+                            <div class="text-sm font-medium text-blue-600 truncate cursor-pointer hover:underline" onclick="navigate('${item.url}'); closeModal('history-modal')">${item.url}</div>
+                            <div class="text-[10px] text-gray-400">User Agent: ${state.userAgent.toUpperCase()}</div>
+                        </div>
+                    `;
+                    list.appendChild(div);
+                });
+            }
+            openModal('history-modal');
+        }
+
+        function clearHistory() {
+            if(confirm("Hapus semua riwayat?")) {
+                state.history = [];
+                saveState();
+                openHistory(); // Refresh view
+            }
+        }
+
+        // --- USER AGENT SWITCHER ---
+
+        function setUA(uaType) {
+            state.userAgent = uaType;
+            saveState();
+            applyUA();
+            toggleMenu('ua-menu'); // Close menu
+            
+            // Show overlay notification
+            const overlay = document.getElementById('ua-overlay');
+            document.getElementById('overlay-ua-name').innerText = uaType.toUpperCase();
+            overlay.classList.remove('hidden');
+            setTimeout(() => overlay.classList.add('hidden'), 3000);
+
+            // Reload frame to "apply" (simulated)
+            const frame = document.getElementById('main-frame');
+            if(frame.src !== 'about:blank') {
+                reloadPage();
+            }
+        }
+
+        function applyUA() {
+            // Update Icon
+            const icon = document.getElementById('ua-icon');
+            icon.className = ''; // Reset
+            
+            // Reset checks
+            document.querySelectorAll('.ua-check').forEach(el => el.classList.add('hidden'));
+
+            if(state.userAgent === 'windows') {
+                icon.className = 'fa-brands fa-windows text-blue-600 text-lg';
+                document.getElementById('check-windows').classList.remove('hidden');
+            } else if(state.userAgent === 'mac') {
+                icon.className = 'fa-brands fa-apple text-gray-800 text-lg';
+                document.getElementById('check-mac').classList.remove('hidden');
+            } else if(state.userAgent === 'android') {
+                icon.className = 'fa-brands fa-android text-green-500 text-lg';
+                document.getElementById('check-android').classList.remove('hidden');
+            } else if(state.userAgent === 'ios') {
+                icon.className = 'fa-brands fa-app-store-ios text-blue-400 text-lg';
+                document.getElementById('check-ios').classList.remove('hidden');
+            }
+        }
+
+        // --- UI TOGGLES ---
+
+        function toggleMenu(id) {
+            const menu = document.getElementById(id);
+            const isHidden = window.getComputedStyle(menu).display === 'none';
+            
+            // Close all others
+            document.querySelectorAll('.popup-menu').forEach(el => el.style.display = 'none');
+            
+            if(isHidden) menu.style.display = 'flex';
+            else menu.style.display = 'none';
+        }
+
+        function closeMenu(id) {
+            document.getElementById(id).style.display = 'none';
+        }
+
+        function openModal(id) {
+            // Close menus first
+            document.querySelectorAll('.popup-menu').forEach(el => el.style.display = 'none');
+            document.getElementById(id).style.display = 'flex';
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).style.display = 'none';
+        }
+
+        function toggleDeviceMode(forceState = null) {
+            const container = document.getElementById('browser-container');
+            const currentState = container.classList.contains('skin-mobile');
+            const shouldBeMobile = forceState !== null ? forceState : !currentState;
+
+            state.isMobileView = shouldBeMobile;
+            saveState();
+
+            if (shouldBeMobile) {
+                container.classList.remove('skin-desktop');
+                container.classList.add('skin-mobile');
+            } else {
+                container.classList.remove('skin-mobile');
+                container.classList.add('skin-desktop');
+            }
+        }
+
+        // --- INIT ---
+        window.onload = function() {
+            loadState();
+            // Default home
+            if(document.getElementById('main-frame').src === 'about:blank') {
+                navigate('https://www.bing.com/search?q=welcome');
+            }
+        };
+
+        // Close menus when clicking outside
+        window.onclick = function(event) {
+            if (!event.target.closest('.popup-menu') && 
+                !event.target.closest('.avatar-circle') && 
+                !event.target.closest('.fa-brands') && /* UA Icon */
+                !event.target.closest('.modal-box')) {
+                
+                // Logic to close menus if click is strictly outside
+                if(event.target.classList.contains('modal-overlay')) {
+                    event.target.style.display = 'none';
+                }
+            }
         }
 
     </script>
