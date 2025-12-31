@@ -2,561 +2,452 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chameleon Browser OS</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Monkey Type Writer Live</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
-        
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=JetBrains+Mono:wght@500;700&display=swap');
+
         body {
-            font-family: 'Roboto', sans-serif;
-            background-color: #0f172a;
-            overflow: hidden;
-            height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            font-family: 'Fredoka', sans-serif;
+            touch-action: manipulation; /* Improves touch response */
         }
 
-        /* --- UI COMPONENTS --- */
-        .browser-skin {
-            background: #dfe3e7;
-            border-radius: 8px;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 0 50px rgba(0,0,0,0.5);
-            overflow: hidden;
-            transition: all 0.5s ease;
-            position: relative;
+        .font-mono {
+            font-family: 'JetBrains Mono', monospace;
         }
 
-        .skin-desktop { width: 95%; height: 90%; }
-        .skin-mobile { width: 375px; height: 800px; border: 8px solid #333; border-radius: 30px; }
-        
-        .omnibox {
-            flex-grow: 1;
-            background: #f1f3f4;
-            border-radius: 20px;
-            padding: 6px 16px;
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-            border: 2px solid transparent;
-            transition: all 0.2s;
-        }
-        .omnibox:focus-within {
-            background: #fff;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-            border: 2px solid #1a73e8;
-        }
-
-        /* --- MODALS & MENUS --- */
-        .popup-menu {
-            position: absolute;
-            top: 50px;
-            right: 10px;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            width: 300px;
-            z-index: 100;
+        /* Hide Scrollbar but keep functionality */
+        .no-scrollbar::-webkit-scrollbar {
             display: none;
-            flex-direction: column;
-            overflow: hidden;
-            animation: fadeIn 0.2s ease;
         }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
         }
 
-        .menu-item {
-            padding: 10px 16px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: #374151;
-            font-size: 14px;
-        }
-        .menu-item:hover { background-color: #f3f4f6; }
-
-        .modal-overlay {
-            position: absolute;
-            inset: 0;
-            background: rgba(0,0,0,0.5);
-            z-index: 200;
-            display: none;
-            justify-content: center;
-            align-items: center;
-        }
-        .modal-box {
-            background: white;
-            padding: 24px;
-            border-radius: 12px;
-            width: 90%;
-            max-width: 400px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        /* Animations */
+        @keyframes pulse-yellow {
+            0%, 100% { box-shadow: 0 0 0 0px rgba(226, 183, 20, 0.4); }
+            50% { box-shadow: 0 0 0 4px rgba(226, 183, 20, 0); }
         }
 
-        /* --- UTILS --- */
-        .avatar-circle {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            background: #1a73e8;
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 14px;
-            cursor: pointer;
-        }
-        
-        .ua-badge {
-            font-size: 10px;
-            padding: 2px 6px;
-            border-radius: 4px;
-            background: #e5e7eb;
-            color: #4b5563;
-            margin-left: auto;
+        .active-word-container {
+            background-color: #3d3b38;
+            border-left: 4px solid #e2b714;
+            padding-left: 8px;
         }
 
-        /* Scrollbar */
-        .history-list::-webkit-scrollbar { width: 6px; }
-        .history-list::-webkit-scrollbar-track { background: #f1f1f1; }
-        .history-list::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
-
+        /* Character Feedback Styles */
+        .char-correct { color: #84cc16; } /* Lime-500 */
+        .char-wrong { color: #ef4444; text-decoration: underline; } /* Red-500 */
+        .char-default { color: #6b7280; } /* Gray-500 */
+        .active-word-text { color: #e2b714; font-weight: bold; } /* Yellow base for active word */
     </style>
 </head>
-<body>
+<body class="bg-[#2c2b29] text-[#e2b714] fixed inset-0 w-full h-full overflow-hidden flex flex-col">
 
-    <!-- BROWSER CONTAINER -->
-    <div id="browser-container" class="browser-skin skin-desktop">
+    <!-- Background Decoration -->
+    <div class="absolute inset-0 opacity-5 pointer-events-none bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-yellow-500 via-transparent to-transparent"></div>
+
+    <!-- MAIN LAYOUT: Split into Top (Game) and Bottom (Keyboard Space) -->
+    
+    <!-- TOP SECTION: Game UI (Always Visible) -->
+    <div class="w-full max-w-2xl mx-auto p-4 flex flex-col shrink-0 z-10" id="gameArea">
         
-        <!-- HEADER / TOOLBAR -->
-        <div class="bg-white border-b border-gray-300 p-2 flex items-center gap-3 z-20 relative">
-            <!-- Controls -->
-            <div class="flex gap-2 text-gray-500">
-                <button onclick="goBack()" class="hover:bg-gray-100 p-2 rounded-full"><i class="fa-solid fa-arrow-left"></i></button>
-                <button onclick="reloadPage()" class="hover:bg-gray-100 p-2 rounded-full"><i class="fa-solid fa-rotate-right"></i></button>
+        <!-- Header -->
+        <header class="flex justify-between items-center mb-2 bg-[#3d3b38] p-2 rounded-lg border-b-2 border-[#e2b714]/20">
+            <div class="flex items-center gap-2">
+                <i data-lucide="timer" class="w-5 h-5 text-red-400"></i>
+                <span id="timer" class="text-xl font-bold text-red-400 font-mono">15s</span>
             </div>
-
-            <!-- Omnibox -->
-            <div class="omnibox group">
-                <i class="fa-solid fa-lock text-emerald-600 text-xs mr-2"></i>
-                <input type="text" id="url-input" class="bg-transparent border-none outline-none w-full text-gray-700" placeholder="Ketik URL atau pencarian..." onkeypress="handleEnter(event)">
+            <div class="flex items-center gap-4">
+                 <div class="text-center">
+                     <span class="text-[10px] uppercase text-gray-400 block">Skor</span>
+                     <span id="score" class="text-lg font-bold text-white leading-none">0</span>
+                 </div>
+                 <div class="text-center border-l border-gray-600 pl-4">
+                    <span class="text-[10px] uppercase text-gray-400 block">High Score</span>
+                    <span id="highScore" class="text-lg font-bold text-[#e2b714] leading-none">0</span>
+               </div>
             </div>
+        </header>
 
-            <!-- Action Icons -->
-            <div class="flex items-center gap-3 pr-2">
-                <!-- UA Indicator -->
-                <div onclick="toggleMenu('ua-menu')" class="cursor-pointer hover:bg-gray-100 p-1 rounded flex items-center gap-1" title="Ganti User Agent">
-                    <i id="ua-icon" class="fa-brands fa-windows text-blue-600 text-lg"></i>
-                </div>
-
-                <!-- History -->
-                <div onclick="openHistory()" class="cursor-pointer hover:bg-gray-100 p-2 rounded-full text-gray-600" title="History">
-                    <i class="fa-solid fa-clock-rotate-left"></i>
-                </div>
-
-                <!-- Profile Avatar -->
-                <div id="profile-btn" onclick="toggleMenu('profile-menu')" class="avatar-circle hover:ring-2 ring-blue-300 transition">
-                    G
+        <!-- Words Display Area -->
+        <!-- Fixed height small enough to fit above keyboard -->
+        <div class="relative bg-[#1e1d1b] rounded-t-xl border-x border-t border-[#e2b714]/10 overflow-hidden">
+            
+            <!-- Loading Overlay -->
+            <div id="loader" class="absolute inset-0 flex items-center justify-center bg-[#1e1d1b] z-20">
+                <div class="flex items-center gap-2">
+                    <i data-lucide="loader-2" class="w-5 h-5 animate-spin text-[#e2b714]"></i>
+                    <span class="text-sm text-gray-400">Memuat kata...</span>
                 </div>
             </div>
+
+            <!-- Scrollable Words Container -->
+            <!-- Height restricted to ~140px (approx 3 lines) to ensure visibility -->
+            <div id="wordsContainer" class="h-[140px] overflow-hidden p-4 text-2xl font-mono leading-relaxed flex flex-wrap content-start gap-x-3 gap-y-3 relative">
+                <!-- Words injected here -->
+            </div>
+            
+            <!-- Fade overlay at bottom of text area -->
+            <div class="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-[#1e1d1b] to-transparent pointer-events-none"></div>
         </div>
 
-        <!-- MENUS (DROPDOWNS) -->
-        
-        <!-- Profile Menu -->
-        <div id="profile-menu" class="popup-menu">
-            <div class="p-4 border-b border-gray-100 bg-gray-50">
-                <p class="text-xs text-gray-500">Sedang login sebagai</p>
-                <p id="menu-username" class="font-bold text-gray-800 text-lg">Guest</p>
-                <p class="text-xs text-green-600 flex items-center gap-1 mt-1"><i class="fa-solid fa-circle text-[8px]"></i> Online</p>
-            </div>
-            <div onclick="openModal('create-account-modal')" class="menu-item">
-                <i class="fa-solid fa-user-plus text-gray-400"></i> Buat Akun Baru
-            </div>
-            <div onclick="logout()" class="menu-item text-red-500 hover:bg-red-50">
-                <i class="fa-solid fa-sign-out-alt"></i> Reset / Logout
-            </div>
-        </div>
-
-        <!-- UA Menu -->
-        <div id="ua-menu" class="popup-menu" style="width: 250px;">
-            <div class="p-3 border-b border-gray-100 font-bold text-gray-600 text-sm">Pilih User Agent</div>
-            <div onclick="setUA('windows')" class="menu-item justify-between">
-                <span><i class="fa-brands fa-windows text-blue-500 mr-2"></i> Windows 11</span>
-                <i class="fa-solid fa-check text-green-500 ua-check hidden" id="check-windows"></i>
-            </div>
-            <div onclick="setUA('mac')" class="menu-item justify-between">
-                <span><i class="fa-brands fa-apple text-gray-800 mr-2"></i> MacOS</span>
-                <i class="fa-solid fa-check text-green-500 ua-check hidden" id="check-mac"></i>
-            </div>
-            <div onclick="setUA('android')" class="menu-item justify-between">
-                <span><i class="fa-brands fa-android text-green-500 mr-2"></i> Android 13</span>
-                <i class="fa-solid fa-check text-green-500 ua-check hidden" id="check-android"></i>
-            </div>
-            <div onclick="setUA('ios')" class="menu-item justify-between">
-                <span><i class="fa-brands fa-app-store-ios text-blue-400 mr-2"></i> iPhone 14</span>
-                <i class="fa-solid fa-check text-green-500 ua-check hidden" id="check-ios"></i>
-            </div>
-            <div class="p-2 bg-yellow-50 text-[10px] text-yellow-700 m-2 rounded border border-yellow-200">
-                <i class="fa-solid fa-triangle-exclamation"></i> UA ini hanya simulasi untuk bypass deteksi basic.
-            </div>
-        </div>
-
-        <!-- IFRAME / VIEWPORT -->
-        <div class="flex-grow relative bg-white">
-            <div id="loader" class="absolute inset-0 bg-white flex flex-col items-center justify-center z-10 hidden">
-                <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mb-2"></div>
-                <p class="text-gray-400 text-sm">Menghubungkan via User Agent...</p>
-            </div>
-            <!-- Pesan Info UA di dalam browser -->
-            <div id="ua-overlay" class="absolute top-0 left-0 w-full bg-yellow-100 text-yellow-800 text-xs px-2 py-1 text-center border-b border-yellow-300 hidden">
-                Browsing sebagai: <span id="overlay-ua-name" class="font-bold">Windows</span>
-            </div>
-            <iframe id="main-frame" src="about:blank" class="w-full h-full border-none"></iframe>
-        </div>
-
-        <!-- FOOTER STATUS BAR -->
-        <div class="bg-gray-100 border-t border-gray-300 px-2 py-1 text-[10px] text-gray-500 flex justify-between">
-            <span id="status-text">Ready</span>
-            <span>Secure Connection <i class="fa-solid fa-shield-halved text-green-500"></i></span>
-        </div>
-
-    </div>
-
-    <!-- MODAL: HISTORY -->
-    <div id="history-modal" class="modal-overlay">
-        <div class="modal-box h-[500px] flex flex-col">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-xl font-bold text-gray-800">Riwayat Penelusuran</h2>
-                <button onclick="closeModal('history-modal')" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-xl"></i></button>
-            </div>
-            <div class="flex justify-between mb-2">
-                 <span class="text-xs text-gray-500">Disimpan Lokal</span>
-                 <button onclick="clearHistory()" class="text-xs text-red-500 hover:underline">Hapus Semua</button>
-            </div>
-            <div id="history-list" class="flex-grow overflow-y-auto history-list space-y-2">
-                <!-- History Items injected here -->
+        <!-- Input Area (Attached to bottom of words area) -->
+        <div class="w-full relative bg-[#3d3b38] p-2 rounded-b-xl shadow-lg border border-[#e2b714]/20">
+            <div class="absolute -top-3 right-4 bg-[#e2b714] text-[#2c2b29] text-[10px] px-2 py-0.5 rounded-full font-bold hidden" id="bonusTimeAnim">+5s</div>
+            
+            <input type="text" id="wordInput" 
+                class="w-full bg-[#2c2b29] text-white border border-gray-600 focus:border-[#e2b714] rounded-lg px-3 py-3 text-lg font-mono outline-none transition-colors"
+                placeholder="Ketik..." 
+                autocomplete="off" 
+                autocorrect="off" 
+                autocapitalize="off" 
+                spellcheck="false"
+                enterkeyhint="go"
+                disabled
+            >
+            <div class="flex justify-between items-center px-1 mt-1">
+                <p class="text-[10px] text-gray-500">Spasi / Enter untuk lanjut</p>
+                <div id="liveStatus" class="w-2 h-2 rounded-full bg-red-500"></div>
             </div>
         </div>
     </div>
 
-    <!-- MODAL: CREATE ACCOUNT -->
-    <div id="create-account-modal" class="modal-overlay">
-        <div class="modal-box">
-            <h2 class="text-xl font-bold text-gray-800 mb-4">Buat Profil Baru</h2>
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Nama Pengguna</label>
-                    <input type="text" id="new-username" class="mt-1 w-full border border-gray-300 rounded p-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Contoh: HackerIndo">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Pilih Warna Avatar</label>
-                    <div class="flex gap-2 mt-2">
-                        <div onclick="selectColor('bg-blue-600')" class="w-8 h-8 rounded-full bg-blue-600 cursor-pointer hover:scale-110 border-2 border-transparent hover:border-black transition color-opt"></div>
-                        <div onclick="selectColor('bg-emerald-500')" class="w-8 h-8 rounded-full bg-emerald-500 cursor-pointer hover:scale-110 border-2 border-transparent hover:border-black transition color-opt"></div>
-                        <div onclick="selectColor('bg-purple-600')" class="w-8 h-8 rounded-full bg-purple-600 cursor-pointer hover:scale-110 border-2 border-transparent hover:border-black transition color-opt"></div>
-                        <div onclick="selectColor('bg-orange-500')" class="w-8 h-8 rounded-full bg-orange-500 cursor-pointer hover:scale-110 border-2 border-transparent hover:border-black transition color-opt"></div>
-                    </div>
-                </div>
-                <button onclick="createAccount()" class="w-full bg-blue-600 text-white font-bold py-2 rounded hover:bg-blue-700">Buat Profil</button>
-            </div>
-        </div>
+    <!-- BOTTOM SECTION: Empty Spacer for Keyboard -->
+    <div class="flex-1 bg-transparent" id="keyboardSpacer">
+        <!-- This area will be covered by keyboard on mobile -->
     </div>
 
-    <!-- DEVICE SWITCHER BUTTON -->
-    <button onclick="toggleDeviceMode()" class="fixed bottom-5 right-5 bg-gray-800 text-white p-4 rounded-full shadow-xl hover:scale-110 transition z-50" title="Ganti Mode (Desktop/HP)">
-        <i class="fa-solid fa-mobile-screen-button"></i>
-    </button>
+    <!-- OVERLAYS -->
+    
+    <!-- Start / Game Over -->
+    <div id="overlay" class="fixed inset-0 bg-[#2c2b29]/95 z-50 flex items-center justify-center backdrop-blur-sm p-4">
+        <div class="text-center w-full max-w-sm">
+            <div class="flex justify-center mb-4">
+                <div class="w-20 h-20 bg-[#e2b714] rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(226,183,20,0.3)]">
+                    <span class="text-4xl">🐵</span>
+                </div>
+            </div>
+            <h1 class="text-3xl font-bold text-white mb-2">Monkey Type Live</h1>
+            <p class="text-gray-400 text-sm mb-6">Ketik secepat kilat. Gunakan Spasi/Enter.</p>
+            
+            <div id="finalScoreDisplay" class="hidden mb-6 bg-[#1e1d1b] p-4 rounded-lg border border-red-500/30 transform transition-all">
+                <p class="text-xs text-gray-400 uppercase tracking-wider">Skor Akhir</p>
+                <p class="text-4xl font-bold text-white mt-1" id="finalScoreValue">0</p>
+            </div>
+
+            <button id="startBtn" class="w-full bg-[#e2b714] hover:bg-[#c9a212] text-[#2c2b29] font-bold py-3.5 px-6 rounded-xl text-lg shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2">
+                <i data-lucide="play" class="fill-current"></i> <span id="btnText">Mulai</span>
+            </button>
+        </div>
+    </div>
 
     <script>
-        // --- DATABASE & STATE MANAGEMENT (LOCALSTORAGE) ---
-        const DB_KEY = 'chameleon_os_v1';
+        // Init Icons safely
+        document.addEventListener("DOMContentLoaded", () => {
+            if (window.lucide) lucide.createIcons();
+        });
+
+        // Config
+        const INITIAL_TIME = 15;
+        const BONUS_TIME = 5;
         
-        // Default State
-        let state = {
-            currentUser: { name: 'Guest', color: 'bg-gray-500', initials: 'G' },
-            history: [],
-            userAgent: 'windows', // windows, mac, android, ios
-            isMobileView: false
+        // State
+        let words = [];
+        let currentWordIndex = 0;
+        let score = 0;
+        let highScore = localStorage.getItem('monkeyHighScore') || 0;
+        let timeLeft = INITIAL_TIME;
+        let timerInterval;
+        let isPlaying = false;
+        let wordBuffer = []; 
+
+        // DOM
+        const els = {
+            container: document.getElementById('wordsContainer'),
+            input: document.getElementById('wordInput'),
+            timer: document.getElementById('timer'),
+            score: document.getElementById('score'),
+            highScore: document.getElementById('highScore'),
+            loader: document.getElementById('loader'),
+            overlay: document.getElementById('overlay'),
+            startBtn: document.getElementById('startBtn'),
+            btnText: document.getElementById('btnText'),
+            finalScoreDisplay: document.getElementById('finalScoreDisplay'),
+            finalScoreValue: document.getElementById('finalScoreValue'),
+            bonusAnim: document.getElementById('bonusTimeAnim'),
+            liveStatus: document.getElementById('liveStatus')
         };
 
-        let selectedColor = 'bg-blue-600';
+        els.highScore.textContent = highScore;
 
-        // Load Data on Start
-        function loadState() {
-            const saved = localStorage.getItem(DB_KEY);
-            if (saved) {
-                state = JSON.parse(saved);
-                // Re-apply settings
-                applyUserProfile();
-                applyUA();
-                if(state.isMobileView) toggleDeviceMode(true);
+        // --- Logic Wikipedia ---
+        async function fetchWikiWords() {
+            try {
+                const response = await fetch('https://id.wikipedia.org/w/api.php?format=json&action=query&prop=extracts&exintro&explaintext&generator=random&grnnamespace=0&grnlimit=3&origin=*');
+                const data = await response.json();
+                
+                if (!data.query?.pages) throw new Error('No pages');
+
+                const rawText = Object.values(data.query.pages).map(p => p.extract).join(' ');
+                
+                // Cleaning Process
+                const cleaned = rawText
+                    .replace(/\[.*?\]/g, '') 
+                    .replace(/\(.*?\)/g, '')
+                    .replace(/[^\w\s-]/g, '') // Remove punctuation except hyphens
+                    .replace(/\s+/g, ' ')
+                    .trim();
+
+                // Filter short words and create array
+                return cleaned.split(' ').filter(w => w.length > 2);
+            } catch (e) {
+                // Offline fallback
+                return ["Monyet", "Pisang", "Hutan", "Pohon", "Cepat", "Ketik", "Lari", "Suka", "Makan", "Buah", "Manis", "Lompat", "Tinggi", "Langit", "Biru", "Awan", "Indonesia", "Merdeka", "Belajar", "Coding"];
             }
         }
 
-        function saveState() {
-            localStorage.setItem(DB_KEY, JSON.stringify(state));
+        async function replenishBuffer() {
+            if (wordBuffer.length < 40) {
+                const newWords = await fetchWikiWords();
+                wordBuffer.push(...newWords);
+                if (words.length === 0 && isPlaying) {
+                    words = wordBuffer.splice(0, 30);
+                    renderWords();
+                }
+            }
         }
 
-        // --- BROWSER ENGINE ---
+        // --- Rendering & Visuals ---
 
-        function handleEnter(e) {
+        function renderWords() {
+            els.container.innerHTML = '';
+            words.forEach((word, index) => {
+                const span = document.createElement('div'); // Use div for better spacing control
+                span.textContent = word;
+                span.dataset.index = index;
+                span.dataset.word = word; // Store original word for easy access
+                
+                // Base styles
+                let classes = "inline-block px-2 py-1 rounded mx-1 mb-2 transition-all duration-200 ";
+                if (index === currentWordIndex) {
+                    classes += "active-word-text bg-[#3d3b38] border-b-2 border-[#e2b714]";
+                } else if (index < currentWordIndex) {
+                    classes += "text-gray-600 opacity-50"; // Done words
+                } else {
+                    classes += "text-gray-500"; // Future words
+                }
+                
+                span.className = classes;
+                els.container.appendChild(span);
+            });
+            updateActiveWordView('');
+            scrollToActiveWord();
+        }
+
+        // The "Live" Highlighting Logic
+        function updateActiveWordView(currentInput) {
+            const activeEl = els.container.querySelector(`div[data-index="${currentWordIndex}"]`);
+            if (!activeEl) return;
+
+            const targetWord = words[currentWordIndex];
+            const input = currentInput.trim().toLowerCase(); // Case insensitive compare
+            const targetLower = targetWord.toLowerCase();
+
+            // Check correctness of current input vs target
+            // We want to colorize the letters inside the active word span
+            
+            let html = '';
+            for (let i = 0; i < targetWord.length; i++) {
+                const targetChar = targetWord[i];
+                const inputChar = input[i];
+
+                if (inputChar) {
+                    if (inputChar.toLowerCase() === targetChar.toLowerCase()) {
+                        html += `<span class="char-correct">${targetChar}</span>`;
+                    } else {
+                        html += `<span class="char-wrong">${targetChar}</span>`;
+                    }
+                } else {
+                    html += `<span class="char-default">${targetChar}</span>`;
+                }
+            }
+            
+            // If user typed more characters than the word has (overflow error)
+            if (input.length > targetWord.length) {
+                const extra = input.slice(targetWord.length);
+                html += `<span class="text-red-500 font-bold opacity-70">${extra}</span>`;
+            }
+
+            activeEl.innerHTML = html;
+        }
+
+        function scrollToActiveWord() {
+            const activeEl = els.container.querySelector(`div[data-index="${currentWordIndex}"]`);
+            if (activeEl) {
+                // Force scroll to make the active word appear at the TOP
+                // We do this by calculating the offsetTop of the element relative to the container
+                activeEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+
+        function updateTimer() {
+            els.timer.textContent = timeLeft + 's';
+            els.liveStatus.classList.toggle('opacity-50'); // Blinking dot
+        }
+
+        // --- Core Game Loop ---
+
+        function gameOver() {
+            isPlaying = false;
+            clearInterval(timerInterval);
+            els.input.disabled = true;
+            els.input.blur();
+            els.liveStatus.className = "w-2 h-2 rounded-full bg-red-500";
+            
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('monkeyHighScore', highScore);
+                els.highScore.textContent = highScore;
+            }
+
+            els.finalScoreValue.textContent = score;
+            els.finalScoreDisplay.classList.remove('hidden');
+            els.btnText.textContent = "Main Lagi";
+            els.overlay.classList.remove('hidden');
+        }
+
+        function submitWord() {
+            const rawInput = els.input.value;
+            // Handle if user typed Space/Enter, input might have trailing space
+            const inputVal = rawInput.trim().toLowerCase();
+            const targetVal = words[currentWordIndex].toLowerCase();
+
+            if (inputVal === targetVal) {
+                // Correct
+                score++;
+                els.score.textContent = score;
+                timeLeft += BONUS_TIME;
+                updateTimer();
+                
+                // Bonus Animation
+                els.bonusAnim.classList.remove('hidden', 'animate-bounce');
+                void els.bonusAnim.offsetWidth; // trigger reflow
+                els.bonusAnim.classList.add('hidden', 'animate-bounce'); // Simple blink logic needed
+                els.bonusAnim.classList.remove('hidden');
+                setTimeout(() => els.bonusAnim.classList.add('hidden'), 800);
+
+                // Mark previous as done visually
+                const oldEl = els.container.querySelector(`div[data-index="${currentWordIndex}"]`);
+                if(oldEl) {
+                    oldEl.className = "inline-block px-2 py-1 rounded mx-1 mb-2 text-green-600 opacity-50";
+                    oldEl.innerHTML = words[currentWordIndex]; // Reset HTML structure
+                }
+
+                currentWordIndex++;
+                els.input.value = '';
+
+                // Buffer check
+                if (currentWordIndex >= words.length - 5) {
+                    if (wordBuffer.length > 0) {
+                        words = [...words, ...wordBuffer.splice(0, 15)];
+                        // We append new words to DOM without destroying old ones to keep scroll smooth?
+                        // Or just re-render next batch? Let's re-render to clean up DOM.
+                        // But to keep index sync, we need to be careful.
+                        // Simpler: Just append to words array and append elements to DOM
+                        const fragment = document.createDocumentFragment();
+                        wordBuffer.splice(0, 15).forEach((w, i) => {
+                             // Logic to append new spans... skipping complex partial render for safety, 
+                             // just letting the existing array grow is fine for memory in short sessions.
+                        });
+                        // Actually, easiest way is full re-render but preserve scroll?
+                        // Let's just do full re-render but keep index.
+                        renderWords();
+                    } else {
+                        replenishBuffer();
+                    }
+                } else {
+                    // Update next active word style
+                    const newEl = els.container.querySelector(`div[data-index="${currentWordIndex}"]`);
+                    if(newEl) {
+                        newEl.className = "inline-block px-2 py-1 rounded mx-1 mb-2 active-word-text bg-[#3d3b38] border-b-2 border-[#e2b714]";
+                        updateActiveWordView(''); // Init highlights
+                        scrollToActiveWord();
+                    }
+                }
+            } else {
+                // Wrong submission
+                els.input.classList.add('border-red-500');
+                setTimeout(() => els.input.classList.remove('border-red-500'), 200);
+            }
+        }
+
+        async function startGame() {
+            score = 0;
+            els.score.textContent = '0';
+            timeLeft = INITIAL_TIME;
+            updateTimer();
+            currentWordIndex = 0;
+            words = [];
+            wordBuffer = [];
+            
+            els.overlay.classList.add('hidden');
+            els.loader.classList.remove('hidden');
+            els.input.value = '';
+            els.liveStatus.className = "w-2 h-2 rounded-full bg-green-500 animate-pulse";
+            
+            await replenishBuffer();
+            words = wordBuffer.splice(0, 30);
+            
+            els.loader.classList.add('hidden');
+            renderWords();
+            els.input.disabled = false;
+            els.input.focus();
+            isPlaying = true;
+
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                updateTimer();
+                if (timeLeft <= 0) gameOver();
+            }, 1000);
+
+            replenishBuffer();
+        }
+
+        // --- Event Listeners ---
+
+        els.startBtn.addEventListener('click', startGame);
+
+        els.input.addEventListener('input', (e) => {
+            if (!isPlaying) return;
+
+            const val = e.target.value;
+            
+            // Check for Space (standard behavior)
+            if (val.endsWith(' ')) {
+                submitWord();
+                return;
+            }
+
+            // Live Highlighting
+            updateActiveWordView(val);
+        });
+
+        // Handle Enter Key as Submit
+        els.input.addEventListener('keydown', (e) => {
+            if (!isPlaying) return;
             if (e.key === 'Enter') {
-                const input = document.getElementById('url-input');
-                let url = input.value.trim();
-                
-                if(!url) return;
-
-                // Simple parser
-                if (!url.includes('.') || url.includes(' ')) {
-                    url = 'https://www.bing.com/search?q=' + encodeURIComponent(url);
-                } else if (!url.startsWith('http')) {
-                    url = 'https://' + url;
-                }
-
-                navigate(url);
+                e.preventDefault(); // Prevent form submission logic if any
+                submitWord();
             }
-        }
+        });
 
-        function navigate(url) {
-            const frame = document.getElementById('main-frame');
-            const loader = document.getElementById('loader');
-            
-            // UI Updates
-            loader.classList.remove('hidden');
-            document.getElementById('url-input').value = url;
-            document.getElementById('status-text').innerText = 'Connecting...';
-
-            // Simulate UA Delay
-            setTimeout(() => {
-                frame.src = url;
-                loader.classList.add('hidden');
-                document.getElementById('status-text').innerText = 'Done';
-                
-                // Add to History
-                addToHistory(url);
-            }, 800);
-        }
-
-        function reloadPage() {
-            const frame = document.getElementById('main-frame');
-            frame.src = frame.src;
-        }
-
-        function goBack() {
-            // Limited iframe capabilities
-            alert("Fungsi Back terbatas pada iframe. Gunakan tombol di dalam website.");
-        }
-
-        // --- ACCOUNT SYSTEM ---
-
-        function applyUserProfile() {
-            const user = state.currentUser;
-            const btn = document.getElementById('profile-btn');
-            
-            btn.innerText = user.initials;
-            // Remove old colors
-            btn.className = `avatar-circle hover:ring-2 ring-blue-300 transition ${user.color}`;
-            
-            document.getElementById('menu-username').innerText = user.name;
-        }
-
-        function selectColor(colorClass) {
-            selectedColor = colorClass;
-            // Visual feedback could be added here
-            alert("Warna dipilih. Klik 'Buat Profil' untuk simpan.");
-        }
-
-        function createAccount() {
-            const name = document.getElementById('new-username').value;
-            if(!name) return alert("Nama tidak boleh kosong!");
-
-            state.currentUser = {
-                name: name,
-                initials: name.substring(0,1).toUpperCase(),
-                color: selectedColor
-            };
-            
-            saveState();
-            applyUserProfile();
-            closeModal('create-account-modal');
-            alert(`Selamat datang, Agent ${name}!`);
-        }
-
-        function logout() {
-            if(confirm("Yakin ingin reset profil ke Guest?")) {
-                state.currentUser = { name: 'Guest', color: 'bg-gray-500', initials: 'G' };
-                saveState();
-                applyUserProfile();
-                closeMenu('profile-menu');
-            }
-        }
-
-        // --- HISTORY SYSTEM ---
-
-        function addToHistory(url) {
-            const now = new Date();
-            const time = now.toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'});
-            
-            // Unshift adds to top
-            state.history.unshift({ url: url, time: time, date: now.toLocaleDateString() });
-            
-            // Limit to last 50
-            if(state.history.length > 50) state.history.pop();
-            
-            saveState();
-        }
-
-        function openHistory() {
-            const list = document.getElementById('history-list');
-            list.innerHTML = '';
-
-            if(state.history.length === 0) {
-                list.innerHTML = '<p class="text-center text-gray-400 mt-10">Belum ada riwayat.</p>';
-            } else {
-                state.history.forEach(item => {
-                    const div = document.createElement('div');
-                    div.className = "flex items-start gap-3 p-2 hover:bg-gray-50 rounded border-b border-gray-100";
-                    div.innerHTML = `
-                        <div class="text-xs text-gray-400 min-w-[50px]">${item.time}</div>
-                        <div class="overflow-hidden">
-                            <div class="text-sm font-medium text-blue-600 truncate cursor-pointer hover:underline" onclick="navigate('${item.url}'); closeModal('history-modal')">${item.url}</div>
-                            <div class="text-[10px] text-gray-400">User Agent: ${state.userAgent.toUpperCase()}</div>
-                        </div>
-                    `;
-                    list.appendChild(div);
-                });
-            }
-            openModal('history-modal');
-        }
-
-        function clearHistory() {
-            if(confirm("Hapus semua riwayat?")) {
-                state.history = [];
-                saveState();
-                openHistory(); // Refresh view
-            }
-        }
-
-        // --- USER AGENT SWITCHER ---
-
-        function setUA(uaType) {
-            state.userAgent = uaType;
-            saveState();
-            applyUA();
-            toggleMenu('ua-menu'); // Close menu
-            
-            // Show overlay notification
-            const overlay = document.getElementById('ua-overlay');
-            document.getElementById('overlay-ua-name').innerText = uaType.toUpperCase();
-            overlay.classList.remove('hidden');
-            setTimeout(() => overlay.classList.add('hidden'), 3000);
-
-            // Reload frame to "apply" (simulated)
-            const frame = document.getElementById('main-frame');
-            if(frame.src !== 'about:blank') {
-                reloadPage();
-            }
-        }
-
-        function applyUA() {
-            // Update Icon
-            const icon = document.getElementById('ua-icon');
-            icon.className = ''; // Reset
-            
-            // Reset checks
-            document.querySelectorAll('.ua-check').forEach(el => el.classList.add('hidden'));
-
-            if(state.userAgent === 'windows') {
-                icon.className = 'fa-brands fa-windows text-blue-600 text-lg';
-                document.getElementById('check-windows').classList.remove('hidden');
-            } else if(state.userAgent === 'mac') {
-                icon.className = 'fa-brands fa-apple text-gray-800 text-lg';
-                document.getElementById('check-mac').classList.remove('hidden');
-            } else if(state.userAgent === 'android') {
-                icon.className = 'fa-brands fa-android text-green-500 text-lg';
-                document.getElementById('check-android').classList.remove('hidden');
-            } else if(state.userAgent === 'ios') {
-                icon.className = 'fa-brands fa-app-store-ios text-blue-400 text-lg';
-                document.getElementById('check-ios').classList.remove('hidden');
-            }
-        }
-
-        // --- UI TOGGLES ---
-
-        function toggleMenu(id) {
-            const menu = document.getElementById(id);
-            const isHidden = window.getComputedStyle(menu).display === 'none';
-            
-            // Close all others
-            document.querySelectorAll('.popup-menu').forEach(el => el.style.display = 'none');
-            
-            if(isHidden) menu.style.display = 'flex';
-            else menu.style.display = 'none';
-        }
-
-        function closeMenu(id) {
-            document.getElementById(id).style.display = 'none';
-        }
-
-        function openModal(id) {
-            // Close menus first
-            document.querySelectorAll('.popup-menu').forEach(el => el.style.display = 'none');
-            document.getElementById(id).style.display = 'flex';
-        }
-
-        function closeModal(id) {
-            document.getElementById(id).style.display = 'none';
-        }
-
-        function toggleDeviceMode(forceState = null) {
-            const container = document.getElementById('browser-container');
-            const currentState = container.classList.contains('skin-mobile');
-            const shouldBeMobile = forceState !== null ? forceState : !currentState;
-
-            state.isMobileView = shouldBeMobile;
-            saveState();
-
-            if (shouldBeMobile) {
-                container.classList.remove('skin-desktop');
-                container.classList.add('skin-mobile');
-            } else {
-                container.classList.remove('skin-mobile');
-                container.classList.add('skin-desktop');
-            }
-        }
-
-        // --- INIT ---
-        window.onload = function() {
-            loadState();
-            // Default home
-            if(document.getElementById('main-frame').src === 'about:blank') {
-                navigate('https://www.bing.com/search?q=welcome');
-            }
-        };
-
-        // Close menus when clicking outside
-        window.onclick = function(event) {
-            if (!event.target.closest('.popup-menu') && 
-                !event.target.closest('.avatar-circle') && 
-                !event.target.closest('.fa-brands') && /* UA Icon */
-                !event.target.closest('.modal-box')) {
-                
-                // Logic to close menus if click is strictly outside
-                if(event.target.classList.contains('modal-overlay')) {
-                    event.target.style.display = 'none';
-                }
-            }
-        }
+        // Prevent double tap zoom
+        document.addEventListener('dblclick', (e) => e.preventDefault(), { passive: false });
 
     </script>
 </body>
